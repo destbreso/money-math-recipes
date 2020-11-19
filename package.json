@@ -6,7 +6,7 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
-  "repository": "git@github.com:One-Broker-Services/money.git",
+  "repository": "https://github.com/One-Broker-Services/money.git",
   "directories": {
     "test": "tests"
   },
