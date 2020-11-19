@@ -1,6 +1,6 @@
 {
   "name": "@one-broker-services/money",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "A simple library to operate with monetary values",
   "main": "index.js",
   "repository": "https://github.com/One-Broker-Services/money.git",
