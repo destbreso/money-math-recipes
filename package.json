@@ -1,8 +1,12 @@
 {
-  "name": "@obs-hq/money",
+  "name": "@one-broker-services/money",
   "version": "0.0.4",
   "description": "A simple library to operate with monetary values",
   "main": "index.js",
+  "publishConfig": {
+    "registry":"https://npm.pkg.github.com"
+  },
+  "repository": "git@github.com:One-Broker-Services/money.git",
   "directories": {
     "test": "tests"
   },
