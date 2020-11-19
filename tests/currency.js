@@ -12,9 +12,9 @@ const {
   applyMaxTax,
   applySumTax,
   applyDiscount,
-} = require('../currency');
+} = require('../index');
 
-describe('#currency', () => {
+describe('#money', () => {
   describe('#value', () => {
     it('0.0000001 is 0.01', () => { expect(value(0.0000001)).to.eql(0.01); });
     it('0.0000005 is 0.01', () => { expect(value(0.0000005)).to.eql(0.01); });
