@@ -1,6 +1,6 @@
 {
   "name": "@obs-hq/money",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A simple library to operate with monetary values",
   "main": "index.js",
   "directories": {
