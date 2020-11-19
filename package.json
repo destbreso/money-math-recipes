@@ -1,0 +1,21 @@
+{
+  "name": "@obs-hq/money",
+  "version": "0.0.1",
+  "description": "A simple library to operate with monetary values",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "mocha --reporter=spec  --require @babel/register 'tests/*.js'"
+  },
+  "keywords": [],
+  "author": "David Estevez Breso",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.12.3",
+    "@babel/register": "^7.12.1",
+    "chai": "^4.2.0",
+    "mocha": "^8.2.1"
+  }
+}
