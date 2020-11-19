@@ -6,13 +6,13 @@ Solves javascript rounding problems and guarantees proper rounding to cents.
 ## Instalation
 
 ```bash
-npm -i @obs-hq/money
+npm -i @one-broker-services/money
 ```
 
 ## Use
 
 ```js
-const money = require(`@obs-hq/money`)
+const money = require(`@one-broker-services/money`)
 
 const value = money.value(10.000001)
 console.log(value) // prints 10.01
@@ -35,7 +35,7 @@ console.log(value) // prints 10.01
 # Quick Examples
 
 ```js
-const money = require(`@obs-hq/money`)
+const money = require(`@one-broker-services/money`)
 
 money.value(0.0000001) // 0.01
 money.sum(9.999, 0.001) // 10
