@@ -1,0 +1,8 @@
+test:
+  script:
+    - npm install
+    - npx nyc --reporter cobertura mocha
+  artifacts:
+    when: always
+    reports:
+      cobertura: coverage/coverage.xml
