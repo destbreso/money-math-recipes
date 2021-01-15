@@ -88,35 +88,6 @@ const multiply = (amount, factor) => {
   }
 }());
 
-// class Currency {
-//   constructor(amount, code) {
-//     // this.code = code;
-//     // this.country = '';
-//     // this.sign = '';
-//     this.amount = amount || 0.00;
-//   }
-
-//   set amount(n) { this.amount = n; }
-
-//   get amount() { return this.amount; }
-
-//   // get code() { return this.code; }
-
-//   sum(amount) { return sum(this.amount, amount); }
-
-//   rest(amount) { return this.sum(-amount); }
-
-//   percent(p) { return percent(this.amount, p); }
-
-//   discount(p) { return this.rest(this.percent(this.amount, p)); }
-
-//   tax(p) { return this.sum(this.percent(this.amount, p)); }
-
-//   convert(rate) { return multiply(this.amount, rate); }
-// }
-
-// module.exports = Currency;
-
 module.exports = {
   /** return currency value */
   value: (amount) => module.exports.sum(amount, 0),

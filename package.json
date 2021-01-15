@@ -8,7 +8,8 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "mocha --reporter=spec  --require @babel/register 'tests/*.js'"
+    "test": "nyc mocha --reporter=spec --require @babel/register 'tests/*.js'",
+    "cobertura": "npx nyc --reporter cobertura mocha tests/*.js"
   },
   "keywords": [],
   "author": "David Estevez Breso",
@@ -17,6 +18,7 @@
     "@babel/core": "^7.12.3",
     "@babel/register": "^7.12.1",
     "chai": "^4.2.0",
-    "mocha": "^8.2.1"
+    "mocha": "^8.2.1",
+    "nyc": "^15.1.0"
   }
 }
