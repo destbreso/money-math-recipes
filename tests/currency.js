@@ -72,6 +72,8 @@ describe('#money', () => {
   });
   describe('#applyDiscount', () => {
     it('100 apply discount 10% is 90', () => { expect(applyDiscount(100, 10)).to.eql(90); });
+    it('11 apply discount 8.2% is 10.10', () => { expect(applyDiscount(11, 8.2)).to.eql(10.10); });
+
   });
   describe('#appyTax', () => {
     it('100 apply maxTax 10% is 110 ', () => { expect(applyTax(100, 10)).to.eql(110); });

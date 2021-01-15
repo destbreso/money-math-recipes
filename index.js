@@ -139,13 +139,13 @@ module.exports = {
     return module.exports.value(module.exports.divide(multiply(amount, p), 100));
   },
   /** apply a percent discount to base amount */
-  applyDiscount: (amount, p) => module.exports.subtract(amount, module.exports.percent(amount, p)),
+  applyDiscount: (amount, p) => module.exports.multiply(amount,1-p/100),
   /** compute tax to base amount, follow max policy from percent value and fee value */
   maxTax: (amount, p, fee) => Math.max(module.exports.percent(amount, p), module.exports.value(fee)),
   // /** apply discount to base amount, follow max policy from percent value and fee value */
   // maxDiscount: (amount, p, fee) => Math.max(module.exports.percent(amount, p), module.exports.value(fee)),
   /** apply a percent tax to base amount */
-  applyTax: (amount, p) => sum(amount, module.exports.percent(amount, p)),
+  applyTax: (amount, p) => module.exports.multiply(amount,1+p/100), //sum(amount, module.exports.percent(amount, p)),
   /** apply tax to base amount, follow max policy from percent value and fee value */
   applyMaxTax: (amount, p, fee) => sum(amount, module.exports.maxTax(amount, p, fee)),
   /** apply tax to base amount, follow sum policy from percent value and fee value */
