@@ -1,41 +1,3 @@
-const sum = (amount1, amount2) => {
-  amount1 = amount1 || 0;
-  amount2 = amount2 || 0;
-  if (amount1 % 1 === 0 && amount2 % 1 === 0) { // both integers
-    return amount1 + amount2;
-  }
-  const s1 = amount1.toString().split('.');
-  const l1 = s1[1] ? s1[1].length : 0;
-
-  const s2 = amount2.toString().split('.');
-  const l2 = s2[1] ? s2[1].length : 0;
-
-  const maxl = (l1 >= l2) ? l1 : l2;
-  const base = 10 ** maxl;
-
-  return Math.ceil10((amount1 * base + amount2 * base) / base, -2);
-};
-
-const multiply = (amount, factor) => {
-  // if (!factor) throw Error('expected a non zero numeric factor');
-  amount = amount || 0;
-  factor = factor || 1;
-  if (factor === 1) return amount;
-  if (amount % 1 === 0 && factor % 1 === 0) { // both integers
-    return amount * factor;
-  }
-  const s1 = amount.toString().split('.');
-  const l1 = s1[1] ? s1[1].length : 0;
-
-  const s2 = factor.toString().split('.');
-  const l2 = s2[1] ? s2[1].length : 0;
-
-  const maxl = (l1 >= l2) ? l1 : l2;
-  const base = 10 ** maxl;
-
-  return Math.ceil10(((amount * base) * (factor * base)) / (base ** 2), -2);
-};
-
 // eslint-disable-next-line func-names
 (function () {
   /**
@@ -88,11 +50,77 @@ const multiply = (amount, factor) => {
   }
 }());
 
+const value = (amount, decimals = 2) => {
+  if(Array.isArray(amount)) return NaN
+  const parsedValue = parseFloat(amount)
+  if(Object.is(parsedValue, NaN)) return NaN
+
+  if (parsedValue % 1 === 0) { // integer
+    return parsedValue;
+  }
+  const s = parsedValue.toString().split('.');
+  const l = s[1] ? s[1].length : 0;
+  const base = 10 ** l;
+  return Math.ceil10((parsedValue * base) / base, -decimals);
+};
+
+const selectBase = (amount1, amount2) => {
+  const s1 = amount1.toString().split('.');
+  const l1 = s1[1] ? s1[1].length : 0;
+
+  const s2 = amount2.toString().split('.');
+  const l2 = s2[1] ? s2[1].length : 0;
+
+  const maxl = (l1 >= l2) ? l1 : l2;
+  return  10 ** maxl;
+}
+
+const extractBase = (amountList) => {
+  let base = 0
+  amountList.forEach((a,index) => {
+    if(index < amountList.length -1) {
+      const newBase = selectBase(a,amountList[index+1])
+      base = newBase > base ? newBase : base
+    }
+  })
+  return base
+}
+
+function sum(...amount){
+  // return value(value(amount1,3)+value(amount2,3))
+  const amountList = [...amount]
+  // console.log(...amountList)
+
+  if(amountList.length === 0) return NaN
+  if(amountList.length === 1) return value(amountList[0])
+
+  let base = extractBase(amountList)
+  const baseSum = amountList.reduce((s,a) => s+a*base,0)
+
+  return Math.ceil10(baseSum / base, -2);
+};
+
+const multiply = (amount, factor, decimals = 2) => {
+  // if (!factor) throw Error('expected a non zero numeric factor');
+  amount = amount || 0;
+  factor = factor || 1;
+  if (factor === 1) return amount;
+  if (amount % 1 === 0 && factor % 1 === 0) { // both integers
+    return amount * factor;
+  }
+
+  const base = selectBase(amount,factor)
+  return Math.ceil10(((amount * base) * (factor * base)) / (base ** 2), -decimals);
+};
+
 module.exports = {
   /** return currency value */
-  value: (amount) => module.exports.sum(amount, 0),
-  /** sum two amounts */
+  value: (amount,decimals = 2) => value(amount, decimals),
+  /** currency change operation*/
+  convert: (amount,fxRate,decimals = 2) => multiply(amount,fxRate,decimals),
+  /** sum amounts */
   sum,
+  add: sum,
   /** difference of two amounts */
   subtract: (amount1, amount2) => sum(amount1, -amount2),
   /** multiply an amount by a factor */
