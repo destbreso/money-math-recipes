@@ -16,26 +16,32 @@ const {
 
 const testValue = (amount, expected,decimals=2) => {
   it(`$${amount} with ${decimals} decimals is ${expected}`, () => { expect(value(amount,decimals)).to.eql(expected); });
+  if(amount !== 0) it(`$${-amount} with ${decimals} decimals is ${-expected}`, () => { expect(value(-amount,decimals)).to.eql(-expected); });
 }
 
 describe('#money', () => {
-    describe('#borderline values', () => {
-      it('NaN amount is NaN', () => { expect(value(NaN)).to.eql(NaN); });
-      it('string (not numeric) amount is NaN', () => { expect(value('a123b')).to.eql(NaN); });
-      it('string (numeric) amount is valid', () => { expect(value('50.001')).to.eql(50.01); });
+  describe('#value: borderline values', () => {
+    it('NaN amount is NaN', () => { expect(value(NaN)).to.eql(NaN); });
+    it('string (not numeric) amount is NaN', () => { expect(value('a123b')).to.eql(NaN); });
+    it('string (numeric) amount is valid', () => { expect(value('50.001')).to.eql(50.01); });
+    it('undefined amount is NaN', () => { expect(value(undefined)).to.eql(NaN); });
+    it('null amount is NaN', () => { expect(value(null)).to.eql(NaN); });
+    it('false amount is NaN', () => { expect(value(false)).to.eql(NaN); });
+    it('true amount is NaN', () => { expect(value(true)).to.eql(NaN); });
+    it('array amount is NaN', () => { expect(value([1,2,3])).to.eql(NaN); });
+    it('object amount is NaN', () => { expect(value({a:1,b:2,c:3})).to.eql(NaN); });
+  });
 
-      it('undefined amount is NaN', () => { expect(value(undefined)).to.eql(NaN); });
-      it('null amount is NaN', () => { expect(value(null)).to.eql(NaN); });
-      it('false amount is NaN', () => { expect(value(false)).to.eql(NaN); });
-      it('true amount is NaN', () => { expect(value(true)).to.eql(NaN); });
-      it('array amount is NaN', () => { expect(value([1,2,3])).to.eql(NaN); });
-      it('object amount is NaN', () => { expect(value({a:1,b:2,c:3})).to.eql(NaN); });
-    });
-
+  // describe('arithmetic', () => {
+  //   testValue(value(0.991),sum(0.991,0))
+  //   testValue(value(-0.991),sum(-0.991,0))
+  // })
 
   describe('#value', () => {
     testValue(0,0)
-    testValue(-0.99,-0.99)
+    testValue(1,1)
+    testValue(0.99,0.99)
+    testValue(0.990,0.99)
     testValue(0.991,1)
     testValue(0.999,1)
     testValue(0.0000001,0.01)
@@ -73,14 +79,17 @@ describe('#money', () => {
     testValue(0.1005,0.1005,4)
   });
   describe('#sum', () => {
+    it('0.1 + 0.2 = 0.3', () => { expect(sum(0.1, 0.2)).to.eql(0.3); });
     it('0 + 0.001 = 0.01', () => { expect(sum(0.00, 0.001)).to.eql(0.01); });
     it('0 + 0.615 = 0.62', () => { expect(sum(0.00, 0.615)).to.eql(0.62); });
-    it('0.1 + 0.2 = 0.3', () => { expect(sum(0.1, 0.2)).to.eql(0.3); });
     it('9.99 + 0.01 = 10.00', () => { expect(sum(9.99, 0.01)).to.eql(10.00); });
     it('9.999 + 0.001 = 10.00', () => { expect(sum(9.999, 0.001)).to.eql(10.00); });
     it('9.999 + 0.01 = 10.01', () => { expect(sum(9.999, 0.01)).to.eql(10.01); });
     it('7.89 + 1.23 + 4.56 = 13.58 *composed way', () => { expect(sum(sum(7.89, 1.23), 4.56)).to.eql(13.68); });
     it('7.89 + 1.23 + 4.56 = 13.58 *clear way', () => { expect(sum(7.89, 1.23,4.56)).to.eql(13.68); });
+    it('0.1 + 0.2 - 0.3 = 0', () => { expect(sum(0.1, 0.2, -0.3)).to.eql(0); });
+    it('0.1 + 0.2 - 0.3 = 0 *array way', () => { expect(sum([0.1, 0.2, -0.3])).to.eql(0); });
+    it('0.1 + 0.2 - 0.3 = 0 *array spread way', () => { expect(sum(...[0.1, 0.2, -0.3])).to.eql(0); });
   });
   describe('#subtract', () => {
     it('1.01 - 0.99 = 0.02', () => { expect(subtract(1.01, 0.99)).to.eql(0.02); });
