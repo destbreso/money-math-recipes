@@ -20,12 +20,14 @@ console.log(value) // prints 10.01
 
 ## Methods
 
-* `value`: return currency value
-* `sum`: sum two amounts,
-* `subtract`: substract two amonts,
+* `value`: return currency value (cents rounding by default)
+* `sum, add`: aggregate amounts (cents rounding)
+* `fx`: convert currency (cents rounding by default)
+* `percent`: compute a percent from an amount
+
+* `subtract`: subtract two amounts,
 * `multiply`: multiply an amount by a factor
 * `divide`: divide an amount by a factor
-* `percent`: compute a percent from an amount
 * `applyDiscount`: apply a percent discount to base amount
 * `maxTax`:compute tax from base amount, follow max policy from percent value and fee value
 * `applyTax`:apply a percent tax to base amount
