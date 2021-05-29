@@ -52,16 +52,19 @@
 
 const value = (amount, decimals = 2) => {
   if(Array.isArray(amount)) return NaN
-  const parsedValue = parseFloat(amount)
+  let parsedValue = parseFloat(amount)
   if(Object.is(parsedValue, NaN)) return NaN
 
   if (parsedValue % 1 === 0) { // integer
     return parsedValue;
   }
+
+  const sign = parsedValue >=0 ? 1 : -1
+  parsedValue = Math.abs(parsedValue)
   const s = parsedValue.toString().split('.');
   const l = s[1] ? s[1].length : 0;
   const base = 10 ** l;
-  return Math.ceil10((parsedValue * base) / base, -decimals);
+  return sign*Math.ceil10((parsedValue * base) / base, -decimals);
 };
 
 const selectBase = (amount1, amount2) => {
@@ -78,7 +81,7 @@ const selectBase = (amount1, amount2) => {
 const extractBase = (amountList) => {
   let base = 0
   amountList.forEach((a,index) => {
-    if(index < amountList.length -1) {
+    if(index < amountList.length-1) {
       const newBase = selectBase(a,amountList[index+1])
       base = newBase > base ? newBase : base
     }
@@ -89,10 +92,11 @@ const extractBase = (amountList) => {
 function sum(...amount){
   // return value(value(amount1,3)+value(amount2,3))
   const amountList = [...amount]
-  // console.log(...amountList)
-
   if(amountList.length === 0) return NaN
-  if(amountList.length === 1) return value(amountList[0])
+  if(amountList.length === 1) {
+    if(Array.isArray(amountList[0])) return sum(...amountList[0])
+    return value(amountList[0])
+  }
 
   let base = extractBase(amountList)
   const baseSum = amountList.reduce((s,a) => s+a*base,0)
@@ -117,9 +121,10 @@ module.exports = {
   /** return currency value */
   value: (amount,decimals = 2) => value(amount, decimals),
   /** currency change operation*/
-  convert: (amount,fxRate,decimals = 2) => multiply(amount,fxRate,decimals),
+  fx: (amount,fxRate,decimals = 2) => multiply(amount,fxRate,decimals),
   /** sum amounts */
   sum,
+  /** sum alias */
   add: sum,
   /** difference of two amounts */
   subtract: (amount1, amount2) => sum(amount1, -amount2),
@@ -135,7 +140,8 @@ module.exports = {
   percent: (amount, p) => {
     if (p < 0) throw new Error('p must be positive (%)');
     if (p === 0) return 0;
-    return module.exports.value(module.exports.divide(multiply(amount, p), 100));
+    // return module.exports.value(module.exports.divide(multiply(amount, p), 100));
+    return module.exports.value(amount * p/100);
   },
   /** apply a percent discount to base amount */
   applyDiscount: (amount, p) => module.exports.multiply(amount,1-p/100),
@@ -153,6 +159,9 @@ module.exports = {
   // applyMaxDiscount: (amount, p, fee) => module.exports.subtract(amount, module.exports.maxDiscount(amount, p, fee)),
   /** apply discount to base amount, follow sum policy from percent value and fee value */
   // applySumDiscount: (amount, p, fee) => module.exports.subtract(module.exports.applyDiscount(amount, p), fee),
+  
+  
+  
   /** currency(12.35).distribute(3); // => [4.12, 4.12, 4.11]
       currency(12.00).distribute(3); // => [4.00, 4.00, 4.00] */
   // distribute () => {}
