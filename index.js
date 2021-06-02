@@ -117,15 +117,114 @@ const multiply = (amount, factor, decimals = 2) => {
   return Math.ceil10(((amount * base) * (factor * base)) / (base ** 2), -decimals);
 };
 
+const toCents = (amount) => {
+  return value(amount)*100
+}
+
+const cents2Amount = (cents) => {
+  if(cents % 1 !== 0) throw new Error('invalid arguments: cents must be integer')
+  return cents/100
+}
+
+const partition = (amount, parts = 1) => {
+  // console.log(`================[PARTITION]==================`)
+  const cents = toCents(amount)
+  // console.log(` -> (INPUT) amount: ${amount} [${cents} cents], parts: ${parts}`) 
+
+  let sliceCount
+  let percentPartition = []
+  if(parts % 1 === 0) {
+    sliceCount = parts
+    percentPartition.length = parts
+    percentPartition.fill(100/parts)
+  }else if(Array.isArray(parts)){
+    sliceCount = parts.length
+    percentPartition = parts
+  }
+  // percentPartition = percentPartition.sort((a,b) => b-a)
+  const totalPercent = Math.round(percentPartition.reduce((a,b) => a+b))
+  // console.log(` -> sliceCount: ${sliceCount}, percentPartition: ${percentPartition} [totalPercent: ${totalPercent}]`) 
+
+  if(totalPercent!==100) throw new Error('invalid parts. expect a number or a  % partition')
+  
+  let partition = []
+  percentPartition.map(p => {
+    const v = Math.floor(cents*p/100)
+    partition.push(v)
+    // console.log(` ${p}% of ${cents} => ${v}`)
+  })
+
+  const distributedCents = sum(partition)
+  let residuo = cents-distributedCents
+  // const warn = `=> [${partition}] distributedCents: ${distributedCents}, residuo: ${residuo} cents`
+  // if(residuo) console.log(`-> !!! REDISTRIBUTE ${warn}`)
+
+  if(residuo > 0){
+    partition = partition.map(x => {
+      if(residuo - 1 >= 0) {
+        residuo -= 1
+        return sum(x,1)
+      }
+      return x
+    })
+  }
+  const finalPartition = partition.map(x => cents2Amount(x))
+  // console.log(` -> finalPartition: [${finalPartition}]`)
+
+  return finalPartition
+}
+
 module.exports = {
   /** return currency value */
   value: (amount,decimals = 2) => value(amount, decimals),
+  /**return cents from amount*/
+  cents: toCents,
+  /**compute amount from cents*/
+  cents2Amount,
   /** currency change operation*/
   fx: (amount,fxRate,decimals = 2) => multiply(amount,fxRate,decimals),
   /** sum amounts */
   sum,
   /** sum alias */
   add: sum,
+  /** compute a percent amount from amount and percent value */
+  percent: (amount, p) => {
+    if (p < 0) throw new Error('p must be positive (%)');
+    if (p === 0) return 0;
+    // return module.exports.value(module.exports.divide(multiply(amount, p), 100));
+    return module.exports.value(amount * p/100);
+  },
+  recipes: {
+    partition,
+    /** difference of two amounts */
+    subtract: (amount1, amount2) => sum(amount1, -amount2),
+    /** multiply an amount by a factor */
+    multiply,
+    /** divide an amount by a factor */
+    divide: (amount, factor) => {
+      if (factor === 0) throw new Error('cant divide by zero');
+      if (factor === 1) return module.exports.value(amount);
+      return multiply(amount, 1 / factor);
+    },
+    /** apply a percent discount to base amount */
+    applyDiscount: (amount, p) => module.exports.multiply(amount,1-p/100),
+    /** compute tax to base amount, follow max policy from percent value and fee value */
+    maxTax: (amount, p, fee) => Math.max(module.exports.percent(amount, p), module.exports.value(fee)),
+    // /** apply discount to base amount, follow max policy from percent value and fee value */
+    // maxDiscount: (amount, p, fee) => Math.max(module.exports.percent(amount, p), module.exports.value(fee)),
+    /** apply a percent tax to base amount */
+    applyTax: (amount, p) => module.exports.multiply(amount,1+p/100), //sum(amount, module.exports.percent(amount, p)),
+    /** apply tax to base amount, follow max policy from percent value and fee value */
+    applyMaxTax: (amount, p, fee) => sum(amount, module.exports.maxTax(amount, p, fee)),
+    /** apply tax to base amount, follow sum policy from percent value and fee value */
+    applySumTax: (amount, p, fee) => sum(module.exports.applyTax(amount, p), fee),
+    /** apply discount to base amount, follow max policy from percent value and fee value */
+    // applyMaxDiscount: (amount, p, fee) => module.exports.subtract(amount, module.exports.maxDiscount(amount, p, fee)),
+    /** apply discount to base amount, follow sum policy from percent value and fee value */
+    // applySumDiscount: (amount, p, fee) => module.exports.subtract(module.exports.applyDiscount(amount, p), fee),
+  },
+  ///// -----DEPRECATED--------!!!!! 
+  ////TODO: moved to recipes
   /** difference of two amounts */
   subtract: (amount1, amount2) => sum(amount1, -amount2),
   /** multiply an amount by a factor */
@@ -135,13 +234,6 @@ module.exports = {
     if (factor === 0) throw new Error('cant divide by zero');
     if (factor === 1) return module.exports.value(amount);
     return multiply(amount, 1 / factor);
-  },
-  /** compute a percent amount from amount and percent value */
-  percent: (amount, p) => {
-    if (p < 0) throw new Error('p must be positive (%)');
-    if (p === 0) return 0;
-    // return module.exports.value(module.exports.divide(multiply(amount, p), 100));
-    return module.exports.value(amount * p/100);
   },
   /** apply a percent discount to base amount */
   applyDiscount: (amount, p) => module.exports.multiply(amount,1-p/100),
@@ -159,18 +251,19 @@ module.exports = {
   // applyMaxDiscount: (amount, p, fee) => module.exports.subtract(amount, module.exports.maxDiscount(amount, p, fee)),
   /** apply discount to base amount, follow sum policy from percent value and fee value */
   // applySumDiscount: (amount, p, fee) => module.exports.subtract(module.exports.applyDiscount(amount, p), fee),
-  
-  
-  
-  /** currency(12.35).distribute(3); // => [4.12, 4.12, 4.11]
-      currency(12.00).distribute(3); // => [4.00, 4.00, 4.00] */
-  // distribute () => {}
-  /** currency(123.45).dollars(); // => 123
-      currency("0.99").dollars(); // => 0 */
-  // dollars () => {}
-  /** currency(123.45).cents(); // => 45
-      currency("0.99").cents(); // => 99 */
-  // cents () => {}
-  /** currency("123.45").add(.01).intValue; // => 12346 */
-  // intValue () => {}
 };
+
+// partition(0.1,1)
+// partition(0.1,2)
+// partition(0.1,3)
+// partition(0.1,4)
+// partition(0.1,5)
+// partition(0.1,6)
+// partition(0.1,7)
+// partition(0.1,8)
+// partition(0.1,9)
+// partition(0.1,10)
+
+// partition(0.11,12)
+// console.log(partition(0.11,10))
+// console.log(partition(11,[25,50,15,5,3,2]))
