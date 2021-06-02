@@ -175,19 +175,52 @@ const partition = (amount, parts = 1) => {
 }
 
 module.exports = {
-  /** return currency value */
+  /**
+   * Compute currency value from number
+   * @param {number} amount 
+   * @param {number} decimals 
+   * @returns {number}
+   */
   value: (amount,decimals = 2) => value(amount, decimals),
-  /**return cents from amount*/
+    /**
+   * Compute currency value from number
+   * @param {number} amount 
+   * @returns {number}
+   */
   cents: toCents,
   /**compute amount from cents*/
+    /**
+   * Compute currency amount from cents
+   * @param {number} amount 
+   * @returns {number}
+   */
   cents2Amount,
-  /** currency change operation*/
+  /**
+   * Apply fx rate to currency amount
+   * @param {number} amount 
+   * @param {number} fxRate 
+   * @param {number} decimals 
+   * @returns {number}
+   */
   fx: (amount,fxRate,decimals = 2) => multiply(amount,fxRate,decimals),
-  /** sum amounts */
+  /**
+   * Aggregate amounts
+   * @param {number} amount 
+   * @returns {number}
+   */
   sum,
-  /** sum alias */
+  /**
+   * Aggregate amounts
+   * @param {number} amount 
+   * @returns {number}
+   */
   add: sum,
-  /** compute a percent amount from amount and percent value */
+  /**
+   * Compute a percent value from amount
+   * @param {number} amount 
+   * @param {number} p 
+   * @returns {number}
+   */
   percent: (amount, p) => {
     if (p < 0) throw new Error('p must be positive (%)');
     if (p === 0) return 0;
