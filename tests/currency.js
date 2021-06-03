@@ -80,6 +80,8 @@ describe('#money', () => {
     testValue(0.1005,0.11)
     testValue(0.1005,0.101,3)
     testValue(0.1005,0.1005,4)
+
+    testValue(10.990001,11,2)
   });
   describe('#cents', () => {
     it('0.01 is 1 cents', () => { expect(cents(0.01)).to.eql(1); });
@@ -148,9 +150,6 @@ describe('#money', () => {
 
 
       it('100 as [33%,41%,9%,2%,15%] is [33,41,9,2,15]', () => { expect(recipes.partition(100,[33,41,9,2,15])).to.eql([33,41,9,2,15]); });
-
-
-
     });
     describe('#subtract', () => {
       it('1.01 - 0.99 = 0.02', () => { expect(subtract(1.01, 0.99)).to.eql(0.02); });
