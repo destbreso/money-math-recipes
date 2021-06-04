@@ -7,17 +7,14 @@ const {
   applySumTax,
   applyTax,
   maxTax,
-  subtract,
-  divide,
-  multiply,
 } = require('./lib/recipes');
 
 /**
  * Compute currency value from Number
  * @public
  * @param {(Number|String)} amount numeric value
- * @param {Number} [decimals=2] integer
- * @returns {Number}
+ * @param {Number} [decimals] integer
+ * @returns {Number} Monetary value of amount
  *
  * @example
  * value(10.253) // 10.26
@@ -32,7 +29,7 @@ const value = (amount, decimals = 2) => arithmetic.value(amount, decimals);
  * Compute cents value from Number
  * @public
  * @param {Number|String} amount numeric value
- * @returns {Number}
+ * @returns {Number} Monetary value in cents of amount
  *
  * @example
  *
@@ -49,7 +46,7 @@ const cents = (amount) => arithmetic.toCents(amount);
    * Compute currency amount from cents
    * @public
    * @param {Number|String} cents numeric value (positive integer)
-   * @returns {Number}
+   * @returns {Number} Monetary value of cents
    *
    * @throws Will throw an error if the argument is negative or not integer.
    * @throws {ArgumentError} cents must be positive integer
@@ -73,7 +70,7 @@ const cents2Amount = (cents) => arithmetic.cents2Amount(cents);
    * @param {(Number|String)} amount numeric value
    * @param {Number} fxRate number
    * @param {Number=} decimals integer
-   * @returns {Number}
+   * @returns {Number} Monetary value of amount*fxRate
    *
    * @example
    * fx(100, 1.55235) // 155.24
@@ -87,75 +84,63 @@ const fx = (amount, fxRate, decimals = 2) => arithmetic.fx(amount, fxRate, decim
    * Aggregate amounts
    * @public
    * @param {(...Number|...String|Number[]|String[])} amounts numeric values
-   * @returns {Number} total amount
-   *
+   * @returns {Number} Monetary value of total amount
    * @example
    *
-   * add(0.1,0.2) // 0.3
-   * add(0.1,0.2,'-0.3') // 0
-   * add([0.1,0.2,-0.3]) // 0
-   * add(...['0.1','0.2','-0.3']) // 0
-   * add('abcd','{a: 1}') // NaN
+   * sum(0.1,0.2) // 0.3
+   * sum(0.1,0.2,'-0.3') // 0
+   * sum([0.1,0.2,-0.3]) // 0
+   * sum(...['0.1','0.2','-0.3']) // 0
+   * sum('abcd','{a: 1}') // NaN
    */
-const add = (...amounts) => arithmetic.add(...amounts);
-
-/**
-   * Aggregate amounts
-   * @public
-   * @param {(...Number|...String|Number[]|String[])} amounts numeric values
-   * @returns {Number} total amount
-   * @alias sum
-   * @deprecated
-   * @example
-   *
-   * add(0.1,0.2) // 0.3
-   * add(0.1,0.2,'-0.3') // 0
-   * add([0.1,0.2,-0.3]) // 0
-   * add(...['0.1','0.2','-0.3']) // 0
-   * add('abcd','{a: 1}') // NaN
-   */
-const sum = (...amounts) => arithmetic.add(...amounts);
+const sum = (...amounts) => arithmetic.sum(...amounts);
 
 /**
    * Compute an amount fraction from a percent value
    * @public
    * @param {Number} amount base amount value
    * @param {Number} p percent value
-   * @returns {Number} amount fraction
+   * @returns {Number} Monetary value of amount*p/100
    *
    */
 const percent = (amount, p) => arithmetic.percent(amount, p);
 
 /**
- * @summary Recipes
- * @namespace recipes
- * @public
- */
-const recipes = {
-/**
- * difference of two amounts
+ * Difference of two amounts
  *
  * @param {Number} x - amount1
  * @param {Number} y - amount2
- * @returns {Number} difference of amount1 and amount2
- *
- * @deprecated
+ * @returns {Number} Monetary value of amount1 - amount2
  *
  * @example
  *
  * subtract(1.01, 0.99) // 0.02
  * subtract(23.42, 19.13) // 4.29
  */
-  subtract: (x, y) => subtract(x, y),
-  /**
+
+const subtract = (x, y) => arithmetic.sum(x, -y);
+
+/**
+ * add two amounts
+ *
+ * @param {Number} x - amount1
+ * @param {Number} y - amount2
+ * @returns {Number} Monetary value of amount1 + amount2
+ *
+ * @example
+ *
+ * add(0.1, 0.2) // 0.03
+ */
+
+const add = (x, y) => arithmetic.sum(x, y);
+
+/**
  * Multiply an amount by a factor
  *
  * @param {(Number|String)} amount numeric value
  * @param {Number=} factor integer
  * @param {Number=} decimals integer
- * @returns {Number}
- *
- * @deprecated
+ * @returns {Number} Monetary value of amount*factor
  *
  * @example
  * fx(100, 1.55235) // 155.24
@@ -164,30 +149,36 @@ const recipes = {
  * fx(100, 0.0000155235,4) // 0.0016
  *
  */
-  multiply: (amount, factor = 1, decimals = 2) => multiply(amount, factor, decimals),
-  /**
- * Divide an amount by a divisor
- *
- * @param {(Number|String)} amount numeric value
- * @param {Number=} divisor integer
- * @param {Number=} decimals integer
- * @returns {Number}
- *
- * @throws Will throw an error if the divisor is zero.
- * @throws {ArgumentError} cant divide by zero
- *
- * @deprecated
- *
- * @example
- * divide(123.451, 1) // 123.46
- * divide(123.45 , 2) // 61.73
- * divide(123.451 , 2) // 61.73
- * divide('123.451' , 2) // 61.73
- * divide(10 , 0) // ArgumentError: cant divide by zero
- * divide('abcd' , 2) // NaN
- * divide(null|undefined|any[]|object , 1) // NaN
+const multiply = (amount, factor = 1, decimals = 2) => arithmetic.multiply(amount, factor, decimals);
+
+/**
+  * Divide an amount by a divisor
+  *
+  * @param {(Number|String)} amount numeric value
+  * @param {Number=} divisor integer
+  * @param {Number=} decimals integer
+  * @returns {Number} Monetary value of amount/factor
+  *
+  * @throws Will throw an error if the divisor is zero.
+  * @throws {ArgumentError} cant divide by zero
+  *
+  * @example
+  * divide(123.451, 1) // 123.46
+  * divide(123.45 , 2) // 61.73
+  * divide(123.451 , 2) // 61.73
+  * divide('123.451' , 2) // 61.73
+  * divide(10 , 0) // ArgumentError: cant divide by zero
+  * divide('abcd' , 2) // NaN
+  * divide(null|undefined|any[]|object , 1) // NaN
+  */
+const divide = (amount, divisor = 1, decimals = 2) => arithmetic.divide(amount, divisor, decimals);
+
+/**
+ * @summary Recipes
+ * @namespace recipes
+ * @public
  */
-  divide: (amount, divisor = 1, decimals = 2) => divide(amount, divisor, decimals),
+const recipes = {
   /**
  * Compute an amount partition
  *
@@ -263,9 +254,12 @@ module.exports = {
   cents,
   cents2Amount,
   fx,
-  add,
   sum,
   percent,
+  add,
+  subtract,
+  multiply,
+  divide,
   recipes,
   // TODO: DEPRECATE THIS
   ...recipes,
