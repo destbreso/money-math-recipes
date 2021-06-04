@@ -6,8 +6,9 @@ const {
   value,
   cents,
   cents2Amount,
-  add,
+  sum,
   fx,
+  add,
   subtract,
   multiply,
   divide,
@@ -106,6 +107,7 @@ describe('#money', () => {
     it('-25 throws an ArgumentError', () => expect(() => cents2Amount(-25)).to.throw(ArgumentError, 'cents must be positive integer'));
   });
   describe('#fx', () => {
+    it('5 * 3 = 15', () => { expect(fx(5, 3)).to.eql(15); });
     it('100 * 1.55235 = 155.24', () => { expect(fx(100, 1.55235)).to.eql(155.24); });
     it('100 * 0.01 = 1', () => { expect(fx(100, 0.01)).to.eql(1); });
     it('100 * 0.0000155235 = 0.01', () => { expect(fx('100', 0.0000155235)).to.eql(0.01); });
@@ -125,6 +127,20 @@ describe('#money', () => {
     it('8.76% of 200 is 17.52', () => { expect(percent(200, 8.76)).to.eql(17.52); });
     it('8.75% of 20 is 1.75', () => { expect(percent(20, 8.75)).to.eql(1.75); });
   });
+  describe('#sum', () => {
+    it('0.1 + 0.2 = 0.3', () => { expect(sum(0.1, 0.2)).to.eql(0.3); });
+    it('0 + 0.001 = 0.01', () => { expect(sum(0.00, 0.001)).to.eql(0.01); });
+    it('0 + 0.615 = 0.62', () => { expect(sum(0.00, 0.615)).to.eql(0.62); });
+    it('9.99 + 0.01 = 10.00', () => { expect(sum(9.99, 0.01)).to.eql(10.00); });
+    it('9.999 + 0.001 = 10.00', () => { expect(sum(9.999, 0.001)).to.eql(10.00); });
+    it('9.999 + 0.01 = 10.01', () => { expect(sum(9.999, 0.01)).to.eql(10.01); });
+    it('7.89 + 1.23 + 4.56 = 13.58 *composed way', () => { expect(sum(sum(7.89, 1.23), 4.56)).to.eql(13.68); });
+    it('7.89 + `1.23`+ 4.56 = 13.58 *clear way', () => { expect(sum(7.89, '1.23', 4.56)).to.eql(13.68); });
+    it('0.1 + 0.2 - 0.3 = 0', () => { expect(sum('0.1', '0.2', '-0.3')).to.eql(0); });
+    it('0.1 + 0.2 - 0.3 = 0 *array way', () => { expect(sum([0.1, 0.2, -0.3])).to.eql(0); });
+    it('0.1 + 0.2 - 0.3 = 0 *array spread way', () => { expect(sum(...[0.1, 0.2, -0.3])).to.eql(0); });
+  });
+
   describe('#add', () => {
     it('0.1 + 0.2 = 0.3', () => { expect(add(0.1, 0.2)).to.eql(0.3); });
     it('0 + 0.001 = 0.01', () => { expect(add(0.00, 0.001)).to.eql(0.01); });
@@ -132,12 +148,22 @@ describe('#money', () => {
     it('9.99 + 0.01 = 10.00', () => { expect(add(9.99, 0.01)).to.eql(10.00); });
     it('9.999 + 0.001 = 10.00', () => { expect(add(9.999, 0.001)).to.eql(10.00); });
     it('9.999 + 0.01 = 10.01', () => { expect(add(9.999, 0.01)).to.eql(10.01); });
-    it('7.89 + 1.23 + 4.56 = 13.58 *composed way', () => { expect(add(add(7.89, 1.23), 4.56)).to.eql(13.68); });
-    it('7.89 + `1.23`+ 4.56 = 13.58 *clear way', () => { expect(add(7.89, '1.23', 4.56)).to.eql(13.68); });
-    it('0.1 + 0.2 - 0.3 = 0', () => { expect(add('0.1', '0.2', '-0.3')).to.eql(0); });
-    it('0.1 + 0.2 - 0.3 = 0 *array way', () => { expect(add([0.1, 0.2, -0.3])).to.eql(0); });
-    it('0.1 + 0.2 - 0.3 = 0 *array spread way', () => { expect(add(...[0.1, 0.2, -0.3])).to.eql(0); });
   });
+
+  describe('#subtract', () => {
+    it('1.01 - 0.99 = 0.02', () => { expect(subtract(1.01, 0.99)).to.eql(0.02); });
+    it('23.42 - 19.13 = 4.29', () => { expect(subtract(23.42, 19.13)).to.eql(4.29); });
+  });
+  describe('#multiply', () => {
+    it('165 * 1.40 = 231', () => { expect(multiply(165, 1.40)).to.eql(231); });
+  });
+  describe('#divide', () => {
+    it('123.45 / 1 = 123.45 ', () => { expect(divide(123.45, 1)).to.eql(123.45); });
+    it('123.451 / 1 = 123.46 ', () => { expect(divide(123.451, 1)).to.eql(123.46); });
+    it('123.45 / 2 = 61.73 ', () => { expect(divide(123.45, 2)).to.eql(61.73); });
+    it('123.451 / 2 = 61.73 ', () => { expect(divide(123.451, 2)).to.eql(61.73); });
+  });
+
   describe('RECIPES', () => {
     describe('#partition', () => {
       it('1 in 1 parts is [1.00]', () => { expect(recipes.partition(1, 1)).to.eql([1.00]); });
@@ -180,21 +206,11 @@ describe('#money', () => {
       it('100 as [50%,50%] is [50,50]', () => { expect(recipes.partition(100, [50, 50])).to.eql([50, 50]); });
       it('100 as [99%,1%] is [99,1]', () => { expect(recipes.partition(100, [99, 1])).to.eql([99, 1]); });
       it('100 as [41%,33%,15%,9%,2%] is [41,33,15,9,2]', () => { expect(recipes.partition(100, [41, 33, 15, 9, 2])).to.eql([41, 33, 15, 9, 2]); });
-
       it('100 as [33%,41%,9%,2%,15%] is [33,41,9,2,15]', () => { expect(recipes.partition(100, [33, 41, 9, 2, 15])).to.eql([33, 41, 9, 2, 15]); });
-    });
-    describe('#subtract', () => {
-      it('1.01 - 0.99 = 0.02', () => { expect(subtract(1.01, 0.99)).to.eql(0.02); });
-      it('23.42 - 19.13 = 4.29', () => { expect(subtract(23.42, 19.13)).to.eql(4.29); });
-    });
-    describe('#multiply', () => {
-      it('165 * 1.40 = 231', () => { expect(multiply(165, 1.40)).to.eql(231); });
-    });
-    describe('#divide', () => {
-      it('123.45 / 1 = 123.45 ', () => { expect(divide(123.45, 1)).to.eql(123.45); });
-      it('123.451 / 1 = 123.46 ', () => { expect(divide(123.451, 1)).to.eql(123.46); });
-      it('123.45 / 2 = 61.73 ', () => { expect(divide(123.45, 2)).to.eql(61.73); });
-      it('123.451 / 2 = 61.73 ', () => { expect(divide(123.451, 2)).to.eql(61.73); });
+
+      it('100 in 0 parts throws an ArgumentError', () => { expect(() => recipes.partition(100, 0)).to.throw(ArgumentError, 'parts must be a positive integer or an array with a partition of 100'); });
+      it('100 in 1.25 parts throws an ArgumentError', () => { expect(() => recipes.partition(100, 1.25)).to.throw(ArgumentError, 'parts must be a positive integer or an array with a partition of 100'); });
+      it('100 in [50%,45%] throws an ArgumentError', () => { expect(() => recipes.partition(100, [50, 45])).to.throw(ArgumentError, 'parts must be a positive integer or an array with a partition of 100'); });
     });
     describe('#maxTax', () => {
       it('100 maxTax 0% or 0.01 is 0.01 ', () => { expect(maxTax(100, 0, 0.01)).to.eql(0.01); });
