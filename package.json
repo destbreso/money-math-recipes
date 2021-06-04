@@ -1,6 +1,6 @@
 {
   "name": "@one-broker-services/money",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "A simple and tiny library for monetary operations",
   "main": "index.js",
   "repository": "https://github.com/One-Broker-Services/money.git",
@@ -12,7 +12,11 @@
     "cobertura": "npx nyc --reporter cobertura mocha tests/*.js",
     "doc-api": "jsdoc2md index.js > doc/API.md"
   },
-  "keywords": ["monetary operations","currency","rounding"],
+  "keywords": [
+    "monetary operations",
+    "currency",
+    "rounding"
+  ],
   "author": "David Estevez Breso",
   "license": "ISC",
   "devDependencies": {
