@@ -1,7 +1,7 @@
 {
   "name": "@one-broker-services/money",
   "version": "1.2.0",
-  "description": "A simple library to operate with monetary values",
+  "description": "A simple and tiny library for monetary operations",
   "main": "index.js",
   "repository": "https://github.com/One-Broker-Services/money.git",
   "directories": {
@@ -9,15 +9,20 @@
   },
   "scripts": {
     "test": "nyc mocha --reporter=spec --require @babel/register 'tests/*.js'",
-    "cobertura": "npx nyc --reporter cobertura mocha tests/*.js"
+    "cobertura": "npx nyc --reporter cobertura mocha tests/*.js",
+    "doc-api": "jsdoc2md index.js > doc/API.md"
   },
-  "keywords": [],
+  "keywords": ["monetary operations","currency","rounding"],
   "author": "David Estevez Breso",
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.12.3",
     "@babel/register": "^7.12.1",
     "chai": "^4.2.0",
+    "eslint": "^7.27.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.23.4",
+    "jsdoc-to-markdown": "^7.0.1",
     "mocha": "^8.2.1",
     "nyc": "^15.1.0"
   }
