@@ -166,6 +166,7 @@ describe('#money', () => {
 
   describe('RECIPES', () => {
     describe('#partition', () => {
+      it('1 in default parts is [1.00]', () => { expect(recipes.partition(1)).to.eql([1.00]); });
       it('1 in 1 parts is [1.00]', () => { expect(recipes.partition(1, 1)).to.eql([1.00]); });
       it('1 in 2 parts is [0.5, 0.5]', () => { expect(recipes.partition(1, 2)).to.eql([0.5, 0.5]); });
       it('1 in 3 parts is [0.34, 0.33, 0.33]', () => { expect(recipes.partition(1, 3)).to.eql([0.34, 0.33, 0.33]); });
@@ -186,6 +187,8 @@ describe('#money', () => {
 
       it('0.01 in 1 parts is [0.01]', () => { expect(recipes.partition(0.01, 1)).to.eql([0.01]); });
       it('0.01 in 5 parts is [0.01,0,0,0,0]', () => { expect(recipes.partition(0.01, 5)).to.eql([0.01, 0, 0, 0, 0]); });
+
+      it('0.01 as [100%] is [0.01]', () => { expect(recipes.partition(0.01, [100])).to.eql([0.01]); });
 
       it('0.01 as [50%,50%] is [0.01,0]', () => { expect(recipes.partition(0.01, [50, 50])).to.eql([0.01, 0]); });
       it('0.01 as [99%,1%] is [0.01,0]', () => { expect(recipes.partition(0.01, [99, 1])).to.eql([0.01, 0]); });
@@ -208,9 +211,15 @@ describe('#money', () => {
       it('100 as [41%,33%,15%,9%,2%] is [41,33,15,9,2]', () => { expect(recipes.partition(100, [41, 33, 15, 9, 2])).to.eql([41, 33, 15, 9, 2]); });
       it('100 as [33%,41%,9%,2%,15%] is [33,41,9,2,15]', () => { expect(recipes.partition(100, [33, 41, 9, 2, 15])).to.eql([33, 41, 9, 2, 15]); });
 
-      it('100 in 0 parts throws an ArgumentError', () => { expect(() => recipes.partition(100, 0)).to.throw(ArgumentError, 'parts must be a positive integer or an array with a partition of 100'); });
-      it('100 in 1.25 parts throws an ArgumentError', () => { expect(() => recipes.partition(100, 1.25)).to.throw(ArgumentError, 'parts must be a positive integer or an array with a partition of 100'); });
-      it('100 in [50%,45%] throws an ArgumentError', () => { expect(() => recipes.partition(100, [50, 45])).to.throw(ArgumentError, 'parts must be a positive integer or an array with a partition of 100'); });
+      it('100 as ...[50%,50%], is [50,50]', () => { expect(recipes.partition(100, ...[50, 50])).to.eql([50, 50]); });
+      it('100 as ,50%,50% is [50,50]', () => { expect(recipes.partition(100, 50, 50)).to.eql([50, 50]); });
+
+      it('100 in 0 parts throws an ArgumentError', () => { expect(() => recipes.partition(100, 0)).to.throw(ArgumentError, 'partsArg must be a positive integer or an array with a partition of 100'); });
+      it('100 in 1.25 parts throws an ArgumentError', () => { expect(() => recipes.partition(100, 1.25)).to.throw(ArgumentError, 'partsArg must be a positive integer or an array with a partition of 100'); });
+      it('100 as [50%,45%] throws an ArgumentError', () => { expect(() => recipes.partition(100, [50, 45])).to.throw(ArgumentError, 'partsArg must be a positive integer or an array with a partition of 100'); });
+      it('100 as ...[50%,45%] throws an ArgumentError', () => { expect(() => recipes.partition(100, ...[50, 45])).to.throw(ArgumentError, 'partsArg must be a positive integer or an array with a partition of 100'); });
+      it('100 as ,50%,45% throws an ArgumentError', () => { expect(() => recipes.partition(100, 50, 45)).to.throw(ArgumentError, 'partsArg must be a positive integer or an array with a partition of 100'); });
+      it('100 as [1%] throws an ArgumentError', () => { expect(() => recipes.partition(100, [1])).to.throw(ArgumentError, 'partsArg must be a positive integer or an array with a partition of 100'); });
     });
     describe('#maxTax', () => {
       it('100 maxTax 0% or 0.01 is 0.01 ', () => { expect(maxTax(100, 0, 0.01)).to.eql(0.01); });

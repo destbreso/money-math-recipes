@@ -10,11 +10,13 @@
   "scripts": {
     "test": "nyc mocha --reporter=spec --require @babel/register 'tests/*.js'",
     "cobertura": "npx nyc --reporter cobertura mocha tests/*.js",
-    "doc-api": "jsdoc2md index.js > doc/API.md"
+    "doc-api": "jsdoc2md index.js > doc/API.md",
+    "bench": "node bench/bench.js"
   },
   "keywords": [
     "monetary operations",
     "currency",
+    "finance",
     "rounding"
   ],
   "author": "David Estevez Breso",
