@@ -107,6 +107,13 @@ describe('#money', () => {
     it('-25 throws an ArgumentError', () => expect(() => cents2Amount(-25)).to.throw(ArgumentError, 'cents must be positive integer'));
   });
   describe('#fx', () => {
+    it('0 * 0 = 0', () => { expect(fx(0, 0)).to.eql(0); });
+    it('0 * 1 = 0', () => { expect(fx(0, 1)).to.eql(0); });
+    it('1 * 0 = 0', () => { expect(fx(1, 0)).to.eql(0); });
+    it('1 * 1 = 1', () => { expect(fx(1, 1)).to.eql(1); });
+    it('12.2506 * 1 = 12.26', () => { expect(fx(12.2506, 1)).to.eql(12.26); });
+    it('1 * 12.2506 = 12.26', () => { expect(fx(1, 12.2506)).to.eql(12.26); });
+
     it('5 * 3 = 15', () => { expect(fx(5, 3)).to.eql(15); });
     it('100 * 1.55235 = 155.24', () => { expect(fx(100, 1.55235)).to.eql(155.24); });
     it('100 * 0.01 = 1', () => { expect(fx(100, 0.01)).to.eql(1); });
