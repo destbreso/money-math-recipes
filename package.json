@@ -1,9 +1,11 @@
 {
-  "name": "@one-broker-services/money",
+  "name": "money-math-recipes",
   "version": "2.0.2",
-  "description": "A simple and tiny library for monetary operations",
+  "description": "A simple and tiny library with no dependencies for monetary operations and recipes",
+  "author": "destbreso <destevezbreso@gmail.com>",
+  "license": "MIT",
   "main": "index.js",
-  "repository": "https://github.com/One-Broker-Services/money.git",
+  "repository": "https://github.com/destbreso/money-math-recipes.git",
   "directories": {
     "test": "tests"
   },
@@ -19,11 +21,10 @@
     "finance",
     "rounding"
   ],
-  "author": "David Estevez Breso",
-  "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.12.3",
     "@babel/register": "^7.12.1",
+    "@semantic-release/release-notes-generator": "^9.0.3",
     "chai": "^4.2.0",
     "eslint": "^7.27.0",
     "eslint-config-airbnb-base": "^14.2.1",
