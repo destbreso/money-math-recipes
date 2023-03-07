@@ -32,7 +32,7 @@ jobs:
       - name: Git configuration
         run: |
           git config --global user.email "destevezbreso@gmail.com"
-          git config --global user.name "David Estevez"
+          git config --global user.name "destbreso"
 
       # Bump package version
       # Use tag latest
