@@ -29,6 +29,66 @@ This is not a bug — it's how IEEE 754 floating-point works. But when you're bu
 
 ---
 
+## The Compounding Risk
+
+Individual floating-point errors look harmless in isolation — fractions of a millicent. The problem is how they **propagate and produce wrong outcomes** in real code.
+
+### Systematic wrong rounding
+
+Financial apps routinely serialize amounts with `toFixed(2)` for storage, display, or PDFs. Certain prices consistently round the wrong direction:
+
+```js
+(1.005).toFixed(2)    // "1.00"  ← should be "1.01"
+(2.005).toFixed(2)    // "2.00"  ← should be "2.01"
+(3.005).toFixed(2)    // "3.00"  ← should be "3.01"
+(49.995).toFixed(2)   // "49.99" ← should be "50.00"
+```
+
+The pattern affects all `.X05` values — exactly the mid-point amounts that arise most often in tax and fee calculations. Every affected record stored with `toFixed()` is a silent discrepancy.
+
+### Silent comparison failures
+
+```js
+// Three installment payments that should total $0.60
+const paid = 0.10 + 0.20 + 0.30;   // 0.6000000000000001
+
+paid === 0.60    // false  ← payment match fails silently
+paid >= 0.60     // true   ← naive guard passes, bug goes unnoticed
+```
+
+No exception. No log entry. A payment that should clear a threshold doesn't. The bug surfaces later — in a reconciliation report, or not at all.
+
+### Errors chain through operations
+
+Each step on a wrong intermediate produces a new wrong value:
+
+```js
+// Cross-currency sale: USD → EUR conversion → markup → local tax
+const usdPrice   = 49.99;
+const inEUR      = usdPrice * 0.92;     // 45.99080000000001   ✗  carries junk
+const withMarkup = inEUR * 1.15;        // 52.88942000000001   ✗  junk multiplied
+const withTax    = withMarkup * 1.07;   // 56.591679400000004  ✗  three steps in
+```
+
+Alone each value rounds to the same cents — but these are the numbers passed to `toFixed()`, written to audit logs, and compared to thresholds. At each step the rounding may go wrong and the error gets **written to the database**.
+
+### At scale: tallies that won't balance
+
+```js
+// 10,000 transactions: 7% tax on $0.03 — per transaction 0.07 × 3 = 0.21000000000000002 ✗
+let taxCollected = 0;
+for (let i = 0; i < 10000; i++) taxCollected += 0.07 * 3;
+
+taxCollected           // 2100.0000000002533
+taxCollected === 2100  // false  ← end-of-day reconciliation check fails
+```
+
+The absolute error is `2.5e-10` — less than a millionth of a cent — but the comparison returns `false`. Enough to break a validation, trigger a false alert, or cause a retry loop in an automated pipeline.
+
+> These aren't edge cases. They appear in VAT remittance reports, revenue-share payouts, subscription billing totals, and any system where decimal results feed further calculations.
+
+---
+
 ## The Solution
 
 **abakojs** gives you a simple, native-number API that always rounds correctly, without wrappers, classes, or configuration ceremony.
