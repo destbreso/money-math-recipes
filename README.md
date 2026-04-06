@@ -439,67 +439,81 @@ partition(100, 50, 50)      // [50, 50]
 
 Throws `ArgumentError` if parts don't sum to 100 or argument is invalid.
 
-### `recipes.applyTax(amount, p)` / `applyTax(amount, p)`
+### `addPercent(amount, p)`
 
-Adds a percentage tax to an amount.
-
-```js
-applyTax(100, 10)  // 110
-applyTax(200, 21)  // 242
-```
-
-### `recipes.applyDiscount(amount, p)` / `applyDiscount(amount, p)`
-
-Applies a percentage discount to an amount.
+Adds a percentage surcharge to an amount.
 
 ```js
-applyDiscount(100, 10) // 90
-applyDiscount(11, 8.2) // 10.10
+addPercent(100, 10)  // 110
+addPercent(200, 21)  // 242
 ```
 
-### `recipes.maxTax(amount, p, fee)` / `maxTax(amount, p, fee)`
+> **Deprecated alias:** `applyTax()`
 
-Returns the higher of the percentage tax or the fixed fee. Useful when a minimum charge applies.
+### `deductPercent(amount, p)`
+
+Deducts a percentage from an amount.
 
 ```js
-maxTax(100, 10, 20) // 20  (10% = 10, fee = 20 → max is 20)
-maxTax(100, 21, 20) // 21  (21% = 21, fee = 20 → max is 21)
+deductPercent(100, 10) // 90
+deductPercent(11, 8.2) // 10.10
 ```
 
-### `recipes.applyMaxTax(amount, p, fee)` / `applyMaxTax(amount, p, fee)`
+> **Deprecated alias:** `applyDiscount()`
 
-Applies the higher of the percentage tax or fixed fee to the amount.
+### `maxFee(amount, p, fee)`
+
+Returns the larger of: p% of amount, or a fixed fee. Useful when a minimum charge applies.
 
 ```js
-applyMaxTax(100, 10, 20) // 120  (fee 20 wins over 10%)
-applyMaxTax(100, 21, 20) // 121  (21% wins over fee 20)
+maxFee(100, 10, 20) // 20  (10% = 10, fee = 20 → max is 20)
+maxFee(100, 21, 20) // 21  (21% = 21, fee = 20 → max is 21)
 ```
 
-### `recipes.applySumTax(amount, p, fee)` / `applySumTax(amount, p, fee)`
+> **Deprecated alias:** `maxTax()`
 
-Applies both the percentage tax and fixed fee, adding them together.
+### `addMaxFee(amount, p, fee)`
+
+Adds the larger of: percentage or fixed fee, to the amount.
 
 ```js
-applySumTax(100, 10, 20) // 130  (100 + 10% + 20)
+addMaxFee(100, 10, 20) // 120  (fee 20 wins over 10%)
+addMaxFee(100, 21, 20) // 121  (21% wins over fee 20)
 ```
 
-### `recipes.applyMaxDiscount(amount, p, fee)` / `applyMaxDiscount(amount, p, fee)`
+> **Deprecated alias:** `applyMaxTax()`
 
-Applies the **larger** of a percentage discount or a fixed discount.
+### `addFees(amount, p, fee)`
+
+Adds both a percentage and a fixed fee to the amount.
 
 ```js
-applyMaxDiscount(100, 10, 20) // 80  (fee 20 wins over 10% = 10)
-applyMaxDiscount(100, 25, 20) // 75  (25% = 25 wins over fee 20)
+addFees(100, 10, 20) // 130  (100 + 10% + 20)
 ```
 
-### `recipes.applySumDiscount(amount, p, fee)` / `applySumDiscount(amount, p, fee)`
+> **Deprecated alias:** `applySumTax()`
 
-Applies both a percentage discount and a fixed discount together.
+### `deductMaxFee(amount, p, fee)`
+
+Deducts the **larger** of a percentage or a fixed fee from the amount.
 
 ```js
-applySumDiscount(100, 10, 20) // 70  (100 - 10% - 20)
-applySumDiscount(200, 50, 30) // 70  (200 - 50% - 30)
+deductMaxFee(100, 10, 20) // 80  (fee 20 wins over 10% = 10)
+deductMaxFee(100, 25, 20) // 75  (25% = 25 wins over fee 20)
 ```
+
+> **Deprecated alias:** `applyMaxDiscount()`
+
+### `deductFees(amount, p, fee)`
+
+Deducts both a percentage and a fixed fee from the amount.
+
+```js
+deductFees(100, 10, 20) // 70  (100 - 10% - 20)
+deductFees(200, 50, 30) // 70  (200 - 50% - 30)
+```
+
+> **Deprecated alias:** `applySumDiscount()`
 
 ---
 
@@ -581,7 +595,7 @@ Run them yourself: `node bench/bench.js`
 | ESM + CJS support                                          |         ✅          |      ✅      |      ✅       |     ✅      |
 | Simple number API (no wrappers)                            |         ✅          |      ❌      |      ❌       |     ❌      |
 | Aggregate sum of N amounts                                 |         ✅          |      ❌      |      ❌       |     ❌      |
-| Tax recipes (applyTax, maxTax, sumTax)                     |         ✅          |      ❌      |      ❌       |     ❌      |
+| Fee recipes (addPercent, maxFee, addFees…)                 |         ✅          |      ❌      |      ❌       |     ❌      |
 | Discount recipes (applyDiscount, maxDiscount, sumDiscount) |         ✅          |      ❌      |      ❌       |     ❌      |
 | Safe partition (exact cent distribution)                   |         ✅          |      ✅      |      ✅       |     ❌      |
 | Helpers (isValid, isZero, isPositive…)                     |         ✅          |      ❌      |      ✅       |     ✅      |

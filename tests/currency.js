@@ -23,6 +23,13 @@ const {
   applyDiscount,
   applyMaxDiscount,
   applySumDiscount,
+  addPercent,
+  deductPercent,
+  maxFee,
+  addMaxFee,
+  addFees,
+  deductMaxFee,
+  deductFees,
   abs,
   min,
   max,
@@ -1161,6 +1168,128 @@ describe("#money", () => {
         expect(recipes.applySumDiscount(100, 10, 20)).toEqual(
           applySumDiscount(100, 10, 20),
         );
+      });
+    });
+
+    // ─── New recipe names ─────────────────────────────────────────────────────
+
+    describe("#addPercent", () => {
+      it("100 addPercent 10% is 110", () => {
+        expect(addPercent(100, 10)).toEqual(110);
+      });
+      it("49.99 addPercent 21% is 60.49", () => {
+        expect(addPercent(49.99, 21)).toEqual(60.49);
+      });
+      it("0.01 addPercent 10% is 0.02", () => {
+        expect(addPercent(0.01, 10)).toEqual(0.02);
+      });
+      it("is an alias of applyTax", () => {
+        expect(addPercent(19.99, 7.5)).toEqual(applyTax(19.99, 7.5));
+      });
+      it("recipes.addPercent matches top-level", () => {
+        expect(recipes.addPercent(100, 10)).toEqual(addPercent(100, 10));
+      });
+    });
+
+    describe("#deductPercent", () => {
+      it("100 deductPercent 10% is 90", () => {
+        expect(deductPercent(100, 10)).toEqual(90);
+      });
+      it("49.99 deductPercent 15% is 42.5", () => {
+        expect(deductPercent(49.99, 15)).toEqual(42.5);
+      });
+      it("0.99 deductPercent 50% is 0.5", () => {
+        expect(deductPercent(0.99, 50)).toEqual(0.5);
+      });
+      it("is an alias of applyDiscount", () => {
+        expect(deductPercent(19.99, 10)).toEqual(applyDiscount(19.99, 10));
+      });
+      it("recipes.deductPercent matches top-level", () => {
+        expect(recipes.deductPercent(100, 10)).toEqual(deductPercent(100, 10));
+      });
+    });
+
+    describe("#maxFee", () => {
+      it("100 maxFee 10% or 20 is 20", () => {
+        expect(maxFee(100, 10, 20)).toEqual(20);
+      });
+      it("100 maxFee 21% or 20 is 21", () => {
+        expect(maxFee(100, 21, 20)).toEqual(21);
+      });
+      it("524.25 maxFee 8.75% or 50 is 50", () => {
+        expect(maxFee(524.25, 8.75, 50)).toEqual(50);
+      });
+      it("is an alias of maxTax", () => {
+        expect(maxFee(524.25, 8.75, 45)).toEqual(maxTax(524.25, 8.75, 45));
+      });
+      it("recipes.maxFee matches top-level", () => {
+        expect(recipes.maxFee(100, 10, 20)).toEqual(maxFee(100, 10, 20));
+      });
+    });
+
+    describe("#addMaxFee", () => {
+      it("100 addMaxFee 10% or 20 is 120", () => {
+        expect(addMaxFee(100, 10, 20)).toEqual(120);
+      });
+      it("100 addMaxFee 25% or 10 is 125", () => {
+        expect(addMaxFee(100, 25, 10)).toEqual(125);
+      });
+      it("is an alias of applyMaxTax", () => {
+        expect(addMaxFee(100, 10, 20)).toEqual(applyMaxTax(100, 10, 20));
+      });
+      it("recipes.addMaxFee matches top-level", () => {
+        expect(recipes.addMaxFee(100, 10, 20)).toEqual(addMaxFee(100, 10, 20));
+      });
+    });
+
+    describe("#addFees", () => {
+      it("100 addFees 10% and 20 is 130", () => {
+        expect(addFees(100, 10, 20)).toEqual(130);
+      });
+      it("200 addFees 5% and 3 is 213", () => {
+        expect(addFees(200, 5, 3)).toEqual(213);
+      });
+      it("is an alias of applySumTax", () => {
+        expect(addFees(100, 10, 20)).toEqual(applySumTax(100, 10, 20));
+      });
+      it("recipes.addFees matches top-level", () => {
+        expect(recipes.addFees(100, 10, 20)).toEqual(addFees(100, 10, 20));
+      });
+    });
+
+    describe("#deductMaxFee", () => {
+      it("100 deductMaxFee 10% or 20 is 80", () => {
+        expect(deductMaxFee(100, 10, 20)).toEqual(80);
+      });
+      it("100 deductMaxFee 25% or 20 is 75", () => {
+        expect(deductMaxFee(100, 25, 20)).toEqual(75);
+      });
+      it("50 deductMaxFee 10% or 10 is 40", () => {
+        expect(deductMaxFee(50, 10, 10)).toEqual(40);
+      });
+      it("is an alias of applyMaxDiscount", () => {
+        expect(deductMaxFee(100, 10, 20)).toEqual(applyMaxDiscount(100, 10, 20));
+      });
+      it("recipes.deductMaxFee matches top-level", () => {
+        expect(recipes.deductMaxFee(100, 10, 20)).toEqual(deductMaxFee(100, 10, 20));
+      });
+    });
+
+    describe("#deductFees", () => {
+      it("100 deductFees 10% and 20 is 70", () => {
+        expect(deductFees(100, 10, 20)).toEqual(70);
+      });
+      it("200 deductFees 50% and 30 is 70", () => {
+        expect(deductFees(200, 50, 30)).toEqual(70);
+      });
+      it("100 deductFees 0% and 10 is 90", () => {
+        expect(deductFees(100, 0, 10)).toEqual(90);
+      });
+      it("is an alias of applySumDiscount", () => {
+        expect(deductFees(100, 10, 20)).toEqual(applySumDiscount(100, 10, 20));
+      });
+      it("recipes.deductFees matches top-level", () => {
+        expect(recipes.deductFees(100, 10, 20)).toEqual(deductFees(100, 10, 20));
       });
     });
 

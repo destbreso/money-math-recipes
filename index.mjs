@@ -29,7 +29,16 @@ export const {
   convert,
   ArgumentError,
   recipes,
-  // recipe top-level re-exports
+  // recipe top-level re-exports (new names)
+  addPercent,
+  deductPercent,
+  maxFee,
+  addMaxFee,
+  addFees,
+  deductMaxFee,
+  deductFees,
+  partition,
+  // deprecated (backward compat)
   maxTax,
   applyDiscount,
   applyTax,
@@ -37,7 +46,6 @@ export const {
   applySumTax,
   applyMaxDiscount,
   applySumDiscount,
-  partition,
 } = money;
 
 export default money;

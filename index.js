@@ -10,6 +10,13 @@ const {
   maxTax,
   applyMaxDiscount,
   applySumDiscount,
+  addPercent,
+  deductPercent,
+  maxFee,
+  addMaxFee,
+  addFees,
+  deductMaxFee,
+  deductFees,
 } = require("./lib/recipes");
 const {
   format: formatCurrency,
@@ -437,75 +444,105 @@ const recipes = {
    *
    */
   partition: (amount, ...parts) => partition(amount, ...parts),
+
+  // ─── New names (preferred) ──────────────────────────────────────────────
+
   /**
-   * Compute tax to base amount, follow max policy from percent value and fee value
-   *
+   * Add a percentage surcharge to an amount.
    * @param {(Number|String)} amount numeric value
-   * @param {Number} p porcentual value
-   * @param {Number} fee numeric value
+   * @param {Number} p percent value
    * @returns {Number}
-   *
-   *
+   * @example addPercent(100, 10) // 110
+   */
+  addPercent: (amount, p) => addPercent(amount, p),
+
+  /**
+   * Deduct a percentage from an amount.
+   * @param {(Number|String)} amount numeric value
+   * @param {Number} p percent value
+   * @returns {Number}
+   * @example deductPercent(100, 10) // 90
+   */
+  deductPercent: (amount, p) => deductPercent(amount, p),
+
+  /**
+   * Returns the larger of: p% of amount, or a fixed fee.
+   * @param {(Number|String)} amount numeric value
+   * @param {Number} p percent value
+   * @param {Number} fee fixed fee
+   * @returns {Number}
+   * @example maxFee(100, 10, 20) // 20
+   */
+  maxFee: (amount, p, fee) => maxFee(amount, p, fee),
+
+  /**
+   * Add the larger of p% or fixed fee to the amount.
+   * @param {(Number|String)} amount numeric value
+   * @param {Number} p percent value
+   * @param {Number} fee fixed fee
+   * @returns {Number}
+   * @example addMaxFee(100, 10, 20) // 120
+   */
+  addMaxFee: (amount, p, fee) => addMaxFee(amount, p, fee),
+
+  /**
+   * Add both p% and fixed fee to the amount.
+   * @param {(Number|String)} amount numeric value
+   * @param {Number} p percent value
+   * @param {Number} fee fixed fee
+   * @returns {Number}
+   * @example addFees(100, 10, 20) // 130
+   */
+  addFees: (amount, p, fee) => addFees(amount, p, fee),
+
+  /**
+   * Deduct the larger of p% or fixed fee from the amount.
+   * @param {(Number|String)} amount numeric value
+   * @param {Number} p percent value
+   * @param {Number} fee fixed fee
+   * @returns {Number}
+   * @example deductMaxFee(100, 10, 20) // 80
+   */
+  deductMaxFee: (amount, p, fee) => deductMaxFee(amount, p, fee),
+
+  /**
+   * Deduct both p% and fixed fee from the amount.
+   * @param {(Number|String)} amount numeric value
+   * @param {Number} p percent value
+   * @param {Number} fee fixed fee
+   * @returns {Number}
+   * @example deductFees(100, 10, 20) // 70
+   */
+  deductFees: (amount, p, fee) => deductFees(amount, p, fee),
+
+  // ─── Deprecated (kept for backward compatibility) ──────────────────────
+
+  /**
+   * @deprecated Use `maxFee` instead.
    */
   maxTax: (amount, p, fee) => maxTax(amount, p, fee),
   /**
-   * Apply a percent discount to base amount
-   *
-   * @param {(Number|String)} amount numeric value
-   * @param {Number} p porcentual value
-   * @returns {Number}
+   * @deprecated Use `deductPercent` instead.
    */
   applyDiscount: (amount, p) => applyDiscount(amount, p),
   /**
-   * Apply a percent tax to base amount
-   *
-   * @param {(Number|String)} amount numeric value
-   * @param {Number} p porcentual value
-   * @returns {Number}
+   * @deprecated Use `addPercent` instead.
    */
   applyTax: (amount, p) => applyTax(amount, p),
   /**
-   * Apply tax to base amount, follow max policy from percent value and fee value
-   *
-   * @param {(Number|String)} amount numeric value
-   * @param {Number} p porcentual value
-   * @param {Number} fee numeric value
-   * @returns {Number}
+   * @deprecated Use `addMaxFee` instead.
    */
   applyMaxTax: (amount, p, fee) => applyMaxTax(amount, p, fee),
   /**
-   * Apply tax to base amount, follow sum policy from percent value and fee value
-   *
-   * @param {(Number|String)} amount numeric value
-   * @param {Number} p porcentual value
-   * @param {Number} fee numeric value
-   * @returns {Number}
+   * @deprecated Use `addFees` instead.
    */
   applySumTax: (amount, p, fee) => applySumTax(amount, p, fee),
   /**
-   * Apply discount using max policy (larger of: p% of amount vs fixed fee)
-   *
-   * @param {(Number|String)} amount numeric value
-   * @param {Number} p percent value
-   * @param {Number} fee fixed fee
-   * @returns {Number}
-   *
-   * @example
-   * applyMaxDiscount(100, 10, 20) // 80
-   * applyMaxDiscount(100, 25, 20) // 75
+   * @deprecated Use `deductMaxFee` instead.
    */
   applyMaxDiscount: (amount, p, fee) => applyMaxDiscount(amount, p, fee),
   /**
-   * Apply discount using sum policy (percent discount then subtract fixed fee)
-   *
-   * @param {(Number|String)} amount numeric value
-   * @param {Number} p percent value
-   * @param {Number} fee fixed fee
-   * @returns {Number}
-   *
-   * @example
-   * applySumDiscount(100, 10, 20) // 70
-   * applySumDiscount(100, 0, 10)  // 90
+   * @deprecated Use `deductFees` instead.
    */
   applySumDiscount: (amount, p, fee) => applySumDiscount(amount, p, fee),
 };

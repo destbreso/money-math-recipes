@@ -201,46 +201,92 @@ export declare function convert(
   decimals?: number,
 ): number;
 
-// ─── Recipes (top-level re-exports for convenience) ─────────────────────────
+// ─── Recipes — new names (preferred) ────────────────────────────────────────
 
-/** Returns the larger of `p`% of `amount` or fixed `fee`. */
+/** Add a percentage surcharge to an amount. `addPercent(100, 10) → 110` */
+export declare function addPercent(amount: number | string, p: number): number;
+
+/** Deduct a percentage from an amount. `deductPercent(100, 10) → 90` */
+export declare function deductPercent(
+  amount: number | string,
+  p: number,
+): number;
+
+/** Returns the larger of: p% of amount, or a fixed fee. `maxFee(100, 10, 20) → 20` */
+export declare function maxFee(
+  amount: number | string,
+  p: number,
+  fee: number,
+): number;
+
+/** Add the larger of p% or fixed fee to the amount. `addMaxFee(100, 10, 20) → 120` */
+export declare function addMaxFee(
+  amount: number | string,
+  p: number,
+  fee: number,
+): number;
+
+/** Add both p% and fixed fee to the amount. `addFees(100, 10, 20) → 130` */
+export declare function addFees(
+  amount: number | string,
+  p: number,
+  fee: number,
+): number;
+
+/** Deduct the larger of p% or fixed fee from the amount. `deductMaxFee(100, 10, 20) → 80` */
+export declare function deductMaxFee(
+  amount: number | string,
+  p: number,
+  fee: number,
+): number;
+
+/** Deduct both p% and fixed fee from the amount. `deductFees(100, 10, 20) → 70` */
+export declare function deductFees(
+  amount: number | string,
+  p: number,
+  fee: number,
+): number;
+
+// ─── Recipes — deprecated (backward compatibility) ──────────────────────────
+
+/** @deprecated Use `maxFee` instead. */
 export declare function maxTax(
   amount: number | string,
   p: number,
   fee: number,
 ): number;
 
-/** Decreases `amount` by `p`%. */
+/** @deprecated Use `deductPercent` instead. */
 export declare function applyDiscount(
   amount: number | string,
   p: number,
 ): number;
 
-/** Increases `amount` by `p`%. */
+/** @deprecated Use `addPercent` instead. */
 export declare function applyTax(amount: number | string, p: number): number;
 
-/** Applies `maxTax(amount, p, fee)` on top of `amount`. */
+/** @deprecated Use `addMaxFee` instead. */
 export declare function applyMaxTax(
   amount: number | string,
   p: number,
   fee: number,
 ): number;
 
-/** Applies `p`% tax then adds fixed `fee`. */
+/** @deprecated Use `addFees` instead. */
 export declare function applySumTax(
   amount: number | string,
   p: number,
   fee: number,
 ): number;
 
-/** Subtracts the larger of (`p`% of amount) or fixed `fee` from `amount`. */
+/** @deprecated Use `deductMaxFee` instead. */
 export declare function applyMaxDiscount(
   amount: number | string,
   p: number,
   fee: number,
 ): number;
 
-/** Applies `p`% discount then subtracts fixed `fee`. */
+/** @deprecated Use `deductFees` instead. */
 export declare function applySumDiscount(
   amount: number | string,
   p: number,
@@ -270,21 +316,53 @@ export declare function partition(amount: number | string): number[];
 // ─── Recipes namespace ───────────────────────────────────────────────────────
 
 export declare namespace recipes {
-  function maxTax(amount: number | string, p: number, fee: number): number;
-  function applyDiscount(amount: number | string, p: number): number;
-  function applyTax(amount: number | string, p: number): number;
-  function applyMaxTax(amount: number | string, p: number, fee: number): number;
-  function applySumTax(amount: number | string, p: number, fee: number): number;
-  function applyMaxDiscount(
+  // ─ New (preferred) ─
+  function addPercent(amount: number | string, p: number): number;
+  function deductPercent(amount: number | string, p: number): number;
+  function maxFee(amount: number | string, p: number, fee: number): number;
+  function addMaxFee(amount: number | string, p: number, fee: number): number;
+  function addFees(amount: number | string, p: number, fee: number): number;
+  function deductMaxFee(
     amount: number | string,
     p: number,
     fee: number,
   ): number;
-  function applySumDiscount(
+  function deductFees(amount: number | string, p: number, fee: number): number;
+  // ─ Deprecated ─
+  /** @deprecated */ function maxTax(
     amount: number | string,
     p: number,
     fee: number,
   ): number;
+  /** @deprecated */ function applyDiscount(
+    amount: number | string,
+    p: number,
+  ): number;
+  /** @deprecated */ function applyTax(
+    amount: number | string,
+    p: number,
+  ): number;
+  /** @deprecated */ function applyMaxTax(
+    amount: number | string,
+    p: number,
+    fee: number,
+  ): number;
+  /** @deprecated */ function applySumTax(
+    amount: number | string,
+    p: number,
+    fee: number,
+  ): number;
+  /** @deprecated */ function applyMaxDiscount(
+    amount: number | string,
+    p: number,
+    fee: number,
+  ): number;
+  /** @deprecated */ function applySumDiscount(
+    amount: number | string,
+    p: number,
+    fee: number,
+  ): number;
+  // ─ Partition ─
   function partition(amount: number | string, parts: number): number[];
   function partition(amount: number | string, percentParts: number[]): number[];
   function partition(
@@ -325,6 +403,15 @@ declare const money: {
   convert: typeof convert;
   ArgumentError: typeof ArgumentError;
   recipes: typeof recipes;
+  // New names
+  addPercent: typeof addPercent;
+  deductPercent: typeof deductPercent;
+  maxFee: typeof maxFee;
+  addMaxFee: typeof addMaxFee;
+  addFees: typeof addFees;
+  deductMaxFee: typeof deductMaxFee;
+  deductFees: typeof deductFees;
+  // Deprecated names
   maxTax: typeof maxTax;
   applyDiscount: typeof applyDiscount;
   applyTax: typeof applyTax;
