@@ -1,7 +1,7 @@
 {
-  "name": "money-math-recipes",
+  "name": "abako",
   "version": "2.1.0",
-  "description": "Zero-dependency monetary arithmetic for JS and TS. Solves floating-point rounding. ESM + CJS. Recipes for tax, discount and partition operations.",
+  "description": "Zero-dependency monetary arithmetic for JS & TS. Precise rounding, fees, discounts, partition, formatting & crypto support. ESM + CJS.",
   "author": "destbreso <destevezbreso@gmail.com>",
   "license": "MIT",
   "main": "index.js",
@@ -20,7 +20,7 @@
       "require": "./index.js"
     }
   },
-  "repository": "https://github.com/destbreso/money-math-recipes.git",
+  "repository": "https://github.com/destbreso/abako.git",
   "directories": {
     "test": "tests"
   },
@@ -32,10 +32,18 @@
     "bench": "node bench/bench.js"
   },
   "keywords": [
-    "monetary operations",
+    "money",
+    "monetary",
     "currency",
+    "arithmetic",
     "finance",
-    "rounding"
+    "rounding",
+    "precision",
+    "crypto",
+    "fees",
+    "discount",
+    "partition",
+    "zero-dependency"
   ],
   "devDependencies": {
     "@semantic-release/release-notes-generator": "^9.0.3",
