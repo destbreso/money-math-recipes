@@ -33,6 +33,9 @@
   ],
   "devDependencies": {
     "@semantic-release/release-notes-generator": "^9.0.3",
+    "currency.js": "^2.0.4",
+    "decimal.js": "^10.6.0",
+    "dinero.js": "^2.0.2",
     "eslint": "^7.27.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.23.4",

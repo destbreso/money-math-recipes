@@ -356,426 +356,68 @@ try {
 
 ---
 
+## Comparison
+
+Benchmarks run on Node.js v22.14.0 · macOS · Apple M-series · 500,000 iterations each.  
+Run them yourself: `node bench/bench.js`
+
+### Speed (ops/sec — higher is better)
+
+| Operation               | money-math-recipes |   currency.js | decimal.js | dinero.js v2 |
+|-------------------------|-------------------:|--------------:|-----------:|-------------:|
+| `add(0.1, 0.2)`         |      **2,490,446** |     1,541,064 |  1,578,686 |  3,526,022 ¹ |
+| `subtract(1.01, 0.99)`  |      **3,222,149** |     1,563,253 |  1,482,781 |  4,964,567 ¹ |
+| `multiply(165, 1.40)`   |      **3,396,472** |     1,306,572 |  1,145,595 |  7,104,413 ¹ |
+| `value()` rounding      |          3,339,597 | **4,579,211** |  1,970,078 |            — |
+| `partition(1, 3)`       |      **1,215,691** |       607,486 |          — |            — |
+| `sum([10 items])`       |        **571,907** |       135,869 |    339,634 |            — |
+| `percent(524.25, 8.75)` |      **3,058,682** |     1,016,530 |    929,596 |            — |
+
+> ¹ dinero.js v2 operates on integer cents internally (amounts pre-multiplied ×100), which skips the float-to-cents conversion step. It requires a verbose setup (`{ amount: 10, currency: { ... } }`) for every value — not comparable as a drop-in usage.
+
+**money-math-recipes is 2–3× faster than currency.js and decimal.js** across all operations. It beats dinero.js when comparing equivalent ease-of-use.
+
+### Package size (total JS files on disk)
+
+| Library                |        Size |
+|------------------------|------------:|
+| **money-math-recipes** | **18.5 KB** |
+| currency.js            |     35.4 KB |
+| decimal.js             |    277.7 KB |
+| dinero.js v2           |    837.9 KB |
+
+### Feature comparison
+
+| Feature                                                    | money-math-recipes | currency.js | dinero.js v2 | decimal.js |
+|------------------------------------------------------------|:------------------:|:-----------:|:------------:|:----------:|
+| Zero runtime dependencies                                  |         ✅          |      ✅      |      ✅       |     ✅      |
+| TypeScript types bundled                                   |         ✅          |      ✅      |      ✅       |     ✅      |
+| ESM + CJS support                                          |         ✅          |      ✅      |      ✅       |     ✅      |
+| Simple number API (no wrappers)                            |         ✅          |      ❌      |      ❌       |     ❌      |
+| Aggregate sum of N amounts                                 |         ✅          |      ❌      |      ❌       |     ❌      |
+| Tax recipes (applyTax, maxTax, sumTax)                     |         ✅          |      ❌      |      ❌       |     ❌      |
+| Discount recipes (applyDiscount, maxDiscount, sumDiscount) |         ✅          |      ❌      |      ❌       |     ❌      |
+| Safe partition (exact cent distribution)                   |         ✅          |      ✅      |      ✅       |     ❌      |
+| Helpers (isValid, isZero, isPositive…)                     |         ✅          |      ❌      |      ✅       |     ❌      |
+| FX rate conversion                                         |         ✅          |      ✅      |      ✅       |     ❌      |
+| Currency formatting / symbols                              |         ❌          |      ✅      |      ✅       |     ❌      |
+| Arbitrary precision (beyond 2 decimals)                    |  ✅ (configurable)  |      ❌      |      ✅       |     ✅      |
+| Multi-currency arithmetic                                  |         ❌          |      ❌      |      ✅       |     ❌      |
+| Internationalisation (i18n)                                |         ❌          |      ✅      |      ✅       |     ❌      |
+
+### When to use what
+
+| Use case                                            | Recommended              |
+|-----------------------------------------------------|--------------------------|
+| Monetary arithmetic — clean, fast, zero boilerplate | ✅ **money-math-recipes** |
+| Need currency formatting (`$1,234.56`)              | currency.js or dinero.js |
+| Multi-currency ledger with exchange conversion      | dinero.js v2             |
+| Scientific / arbitrary-precision decimals           | decimal.js               |
+| Maximum raw throughput, integer-only data           | dinero.js v2             |
+
+---
+
 ## License
 
 MIT
 
-
-## Instalation
-
-```bash
-npm -i @one-broker-services/money
-```
-
-## How to use
-
-```js
-const money = require(`@one-broker-services/money`)
-
-const result = money. ... // for arithmetic
-const result = money.recipes. ... // for recipes
-```
-
-## Objects
-
-<dl>
-<dt><a href="#recipes">recipes</a> : <code>object</code></dt>
-<dd></dd>
-</dl>
-
-## Functions
-
-<dl>
-<dt><a href="#value">value(amount, [decimals])</a> ⇒ <code>Number</code></dt>
-<dd><p>Compute currency value from Number</p>
-</dd>
-<dt><a href="#cents">cents(amount)</a> ⇒ <code>Number</code></dt>
-<dd><p>Compute cents value from Number</p>
-</dd>
-<dt><a href="#cents2Amount">cents2Amount(cents)</a> ⇒ <code>Number</code></dt>
-<dd><p>Compute currency amount from cents</p>
-</dd>
-<dt><a href="#fx">fx(amount, fxRate, [decimals])</a> ⇒ <code>Number</code></dt>
-<dd><p>Apply fx rate to currency amount</p>
-</dd>
-<dt><a href="#sum">sum(...amounts)</a> ⇒ <code>Number</code></dt>
-<dd><p>Aggregate amounts</p>
-</dd>
-<dt><a href="#percent">percent(amount, p)</a> ⇒ <code>Number</code></dt>
-<dd><p>Compute an amount fraction from a percent value</p>
-</dd>
-<dt><a href="#subtract">subtract(x, y)</a> ⇒ <code>Number</code></dt>
-<dd><p>Difference of two amounts</p>
-</dd>
-<dt><a href="#add">add(x, y)</a> ⇒ <code>Number</code></dt>
-<dd><p>add two amounts</p>
-</dd>
-<dt><a href="#multiply">multiply(amount, [factor], [decimals])</a> ⇒ <code>Number</code></dt>
-<dd><p>Multiply an amount by a factor</p>
-</dd>
-<dt><a href="#divide">divide(amount, [divisor], [decimals])</a> ⇒ <code>Number</code></dt>
-<dd><p>Divide an amount by a divisor</p>
-</dd>
-</dl>
-
-<a name="recipes"></a>
-
-## recipes : <code>object</code>
-
-**Kind**: global namespace  
-**Summary**: Recipes  
-**Access**: public  
-
-* [recipes](#recipes) : <code>object</code>
-  * [.partition(amount, parts)](#recipes.partition) ⇒ <code>Number</code>
-  * [.maxTax(amount, p, fee)](#recipes.maxTax) ⇒ <code>Number</code>
-  * [.applyDiscount(amount, p)](#recipes.applyDiscount) ⇒ <code>Number</code>
-  * [.applyTax(amount, p)](#recipes.applyTax) ⇒ <code>Number</code>
-  * [.applyMaxTax(amount, p, fee)](#recipes.applyMaxTax) ⇒ <code>Number</code>
-  * [.applySumTax(amount, p, fee)](#recipes.applySumTax) ⇒ <code>Number</code>
-
-<a name="recipes.partition"></a>
-
-### recipes.partition(amount, parts) ⇒ <code>Number</code>
-
-Compute an amount partition
-
-**Kind**: static method of [<code>recipes</code>](#recipes)  
-**Throws**:
-
-* Will throw an error if parts arguments is not a positive integer or is not a partition of 100
-* <code>ArgumentError</code> parts must be a positive integer or an array with a partition of 100
-
-| Param  | Type                                                     | Description                                           |
-|--------|----------------------------------------------------------|-------------------------------------------------------|
-| amount | <code>Number</code> \| <code>String</code>               | numeric value                                         |
-| parts  | <code>Number</code> \| <code>Array.&lt;Number&gt;</code> | integer or percent partition (array of percent parts) |
-
-**Example**  
-
-```js
-partition(1,2) // [0.5,0.5]
-partition(1,3) // [0.34, 0.33, 0.33]
-partition(1,11) // [0.1,0.09,0.09,0.09,0.09,0.09,0.09,0.09,0.09,0.09,0.09]
-partition(1,[50,50]) // [0.5,0.5]
-partition(0.01,[41,33,15,9,2]) //[0.01,0,0,0,0]
-partition(10,[41,33,15,9,2]) //[4.1,3.3,1.5,0.9,0.2]
-partition(100,"qwert") // ArgumentError: parts must be a positive integer or an array with a partition of 100
-partition(100,0) // ArgumentError: parts must be a positive integer or an array with a partition of 100
-partition(100,[50,49]) // ArgumentError: parts must be a positive integer or an array with a partition of 100
-```
-
-<a name="recipes.maxTax"></a>
-
-### recipes.maxTax(amount, p, fee) ⇒ <code>Number</code>
-
-Compute tax to base amount, follow max policy from percent value and fee value
-
-**Kind**: static method of [<code>recipes</code>](#recipes)  
-
-| Param  | Type                                       | Description      |
-|--------|--------------------------------------------|------------------|
-| amount | <code>Number</code> \| <code>String</code> | numeric value    |
-| p      | <code>Number</code>                        | porcentual value |
-| fee    | <code>Number</code>                        | numeric value    |
-
-<a name="recipes.applyDiscount"></a>
-
-### recipes.applyDiscount(amount, p) ⇒ <code>Number</code>
-
-Apply a percent discount to base amount
-
-**Kind**: static method of [<code>recipes</code>](#recipes)  
-
-| Param  | Type                                       | Description      |
-|--------|--------------------------------------------|------------------|
-| amount | <code>Number</code> \| <code>String</code> | numeric value    |
-| p      | <code>Number</code>                        | porcentual value |
-
-<a name="recipes.applyTax"></a>
-
-### recipes.applyTax(amount, p) ⇒ <code>Number</code>
-
-Apply a percent tax to base amount
-
-**Kind**: static method of [<code>recipes</code>](#recipes)  
-
-| Param  | Type                                       | Description      |
-|--------|--------------------------------------------|------------------|
-| amount | <code>Number</code> \| <code>String</code> | numeric value    |
-| p      | <code>Number</code>                        | porcentual value |
-
-<a name="recipes.applyMaxTax"></a>
-
-### recipes.applyMaxTax(amount, p, fee) ⇒ <code>Number</code>
-
-Apply tax to base amount, follow max policy from percent value and fee value
-
-**Kind**: static method of [<code>recipes</code>](#recipes)  
-
-| Param  | Type                                       | Description      |
-|--------|--------------------------------------------|------------------|
-| amount | <code>Number</code> \| <code>String</code> | numeric value    |
-| p      | <code>Number</code>                        | porcentual value |
-| fee    | <code>Number</code>                        | numeric value    |
-
-<a name="recipes.applySumTax"></a>
-
-### recipes.applySumTax(amount, p, fee) ⇒ <code>Number</code>
-
-Apply tax to base amount, follow sum policy from percent value and fee value
-
-**Kind**: static method of [<code>recipes</code>](#recipes)  
-
-| Param  | Type                                       | Description      |
-|--------|--------------------------------------------|------------------|
-| amount | <code>Number</code> \| <code>String</code> | numeric value    |
-| p      | <code>Number</code>                        | porcentual value |
-| fee    | <code>Number</code>                        | numeric value    |
-
-<a name="value"></a>
-
-## value(amount, [decimals]) ⇒ <code>Number</code>
-
-Compute currency value from Number
-
-**Kind**: global function  
-**Returns**: <code>Number</code> - Monetary value of amount  
-**Access**: public  
-
-| Param      | Type                                       | Default        | Description   |
-|------------|--------------------------------------------|----------------|---------------|
-| amount     | <code>Number</code> \| <code>String</code> |                | numeric value |
-| [decimals] | <code>Number</code>                        | <code>2</code> | integer       |
-
-**Example**  
-
-```js
-value(10.253) // 10.26
-value('10.990001',4) // 10.9901
-value('10.990001') // 11.00
-value('abcd') // NaN
-value(null|undefined|any[]|object) // NaN
-```
-
-<a name="cents"></a>
-
-## cents(amount) ⇒ <code>Number</code>
-
-Compute cents value from Number
-
-**Kind**: global function  
-**Returns**: <code>Number</code> - Monetary value in cents of amount  
-**Access**: public  
-
-| Param  | Type                                       | Description   |
-|--------|--------------------------------------------|---------------|
-| amount | <code>Number</code> \| <code>String</code> | numeric value |
-
-**Example**  
-
-```js
-cents(0.01) // 1
-cents(0.17) // 17
-cents('3.12') // 312
-cents(0.11001) // 12
-cents('abcd') // NaN
-cents(null|undefined|any[]|object) // NaN
-```
-
-<a name="cents2Amount"></a>
-
-## cents2Amount(cents) ⇒ <code>Number</code>
-
-Compute currency amount from cents
-
-**Kind**: global function  
-**Returns**: <code>Number</code> - Monetary value of cents  
-**Throws**:
-
-* Will throw an error if the argument is negative or not integer.
-* <code>ArgumentError</code> cents must be positive integer
-
-**Access**: public  
-
-| Param | Type                                       | Description                      |
-|-------|--------------------------------------------|----------------------------------|
-| cents | <code>Number</code> \| <code>String</code> | numeric value (positive integer) |
-
-**Example**  
-
-```js
-cents2Amount(157) // 1.57
-cents2Amount('5513') // 55.13
-cents2Amount(157) // 1.57
-cents2Amount('abcd') // NaN
-cents2Amount(null|undefined|any[]|object) // NaN
-cents2Amount(12.5) // ArgumentError: cents must be positive integer
-cents2Amount(-25) // ArgumentError: cents must be positive integer
-```
-
-<a name="fx"></a>
-
-## fx(amount, fxRate, [decimals]) ⇒ <code>Number</code>
-
-Apply fx rate to currency amount
-
-**Kind**: global function  
-**Returns**: <code>Number</code> - Monetary value of amount*fxRate  
-**Access**: public  
-
-| Param      | Type                                       | Default        | Description   |
-|------------|--------------------------------------------|----------------|---------------|
-| amount     | <code>Number</code> \| <code>String</code> |                | numeric value |
-| fxRate     | <code>Number</code>                        |                | number        |
-| [decimals] | <code>Number</code>                        | <code>2</code> | integer       |
-
-**Example**  
-
-```js
-fx(100, 1.55235) // 155.24
-fx('100', 0.01) // 1
-fx(100, 0.0000155235) // 0.01
-fx(100, 0.0000155235,4) // 0.0016
-```
-
-<a name="sum"></a>
-
-## sum(...amounts) ⇒ <code>Number</code>
-
-Aggregate amounts
-
-**Kind**: global function  
-**Returns**: <code>Number</code> - Monetary value of total amount  
-**Access**: public  
-
-| Param      | Type                                                                                                                 | Description    |
-|------------|----------------------------------------------------------------------------------------------------------------------|----------------|
-| ...amounts | <code>Number</code> \| <code>String</code> \| <code>Array.&lt;Number&gt;</code> \| <code>Array.&lt;String&gt;</code> | numeric values |
-
-**Example**  
-
-```js
-sum(0.1,0.2) // 0.3
-sum(0.1,0.2,'-0.3') // 0
-sum([0.1,0.2,-0.3]) // 0
-sum(...['0.1','0.2','-0.3']) // 0
-sum('abcd','{a: 1}') // NaN
-```
-
-<a name="percent"></a>
-
-## percent(amount, p) ⇒ <code>Number</code>
-
-Compute an amount fraction from a percent value
-
-**Kind**: global function  
-**Returns**: <code>Number</code> - Monetary value of amount*p/100  
-**Access**: public  
-
-| Param  | Type                | Description       |
-|--------|---------------------|-------------------|
-| amount | <code>Number</code> | base amount value |
-| p      | <code>Number</code> | percent value     |
-
-<a name="subtract"></a>
-
-## subtract(x, y) ⇒ <code>Number</code>
-
-Difference of two amounts
-
-**Kind**: global function  
-**Returns**: <code>Number</code> - Monetary value of amount1 - amount2  
-
-| Param | Type                | Description |
-|-------|---------------------|-------------|
-| x     | <code>Number</code> | amount1     |
-| y     | <code>Number</code> | amount2     |
-
-**Example**  
-
-```js
-subtract(1.01, 0.99) // 0.02
-subtract(23.42, 19.13) // 4.29
-```
-
-<a name="add"></a>
-
-## add(x, y) ⇒ <code>Number</code>
-
-add two amounts
-
-**Kind**: global function  
-**Returns**: <code>Number</code> - Monetary value of amount1 + amount2  
-
-| Param | Type                | Description |
-|-------|---------------------|-------------|
-| x     | <code>Number</code> | amount1     |
-| y     | <code>Number</code> | amount2     |
-
-**Example**  
-
-```js
-add(0.1, 0.2) // 0.03
-```
-
-<a name="multiply"></a>
-
-## multiply(amount, [factor], [decimals]) ⇒ <code>Number</code>
-
-Multiply an amount by a factor
-
-**Kind**: global function  
-**Returns**: <code>Number</code> - Monetary value of amount*factor  
-
-| Param      | Type                                       | Default        | Description   |
-|------------|--------------------------------------------|----------------|---------------|
-| amount     | <code>Number</code> \| <code>String</code> |                | numeric value |
-| [factor]   | <code>Number</code>                        | <code>1</code> | integer       |
-| [decimals] | <code>Number</code>                        | <code>2</code> | integer       |
-
-**Example**  
-
-```js
-fx(100, 1.55235) // 155.24
-fx('100', 0.01) // 1
-fx(100, 0.0000155235) // 0.01
-fx(100, 0.0000155235,4) // 0.0016
-```
-
-<a name="divide"></a>
-
-## divide(amount, [divisor], [decimals]) ⇒ <code>Number</code>
-
-Divide an amount by a divisor
-
-**Kind**: global function  
-**Returns**: <code>Number</code> - Monetary value of amount/factor  
-**Throws**:
-
-* Will throw an error if the divisor is zero.
-* <code>ArgumentError</code> cant divide by zero
-
-| Param      | Type                                       | Default        | Description   |
-|------------|--------------------------------------------|----------------|---------------|
-| amount     | <code>Number</code> \| <code>String</code> |                | numeric value |
-| [divisor]  | <code>Number</code>                        | <code>1</code> | integer       |
-| [decimals] | <code>Number</code>                        | <code>2</code> | integer       |
-
-**Example**  
-
-```js
-divide(123.451, 1) // 123.46
-divide(123.45 , 2) // 61.73
-divide(123.451 , 2) // 61.73
-divide('123.451' , 2) // 61.73
-divide(10 , 0) // ArgumentError: cant divide by zero
-divide('abcd' , 2) // NaN
-divide(null|undefined|any[]|object , 1) // NaN
-```
-
-## Tests
-
-```bash
-npm run test
-```
