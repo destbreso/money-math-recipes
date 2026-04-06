@@ -349,16 +349,27 @@ Compares two monetary amounts after rounding. Returns `-1`, `0`, or `1`. Returns
 ```js
 compare(19.99, 24.99)    // -1
 compare(24.99, 19.99)    // 1
-compare(9.99, 9.990)     // 0
-compare('0.10', 0.1)     // 0   (string input)
+compare(9.99, 9.990)     //  0
+compare('0.10', 0.1)     //  0   (string input)
 compare(NaN, 1.99)       // NaN
 
 // Crypto (8 decimals)
 compare(0.12345678, 0.12345679, 8)  // -1
-compare(0.12345678, 0.12345678, 8)  // 0
+compare(0.12345678, 0.12345678, 8)  //  0
 ```
 
-> **Note:** values are rounded before comparison. `compare(0.001, 0.002)` → `0` because both round to `0.01`.
+Precision determines what counts as equal. Both sides are rounded **before** comparing — so two values that differ only beyond the active decimal place are treated as identical:
+
+```js
+// Default precision: 2 decimals
+compare(9.994, 9.999)        //  0  (both round to 9.99 → equal)
+compare(9.994, 9.999, 3)     // -1  (9.994 < 9.999 at 3 dp)
+
+compare(14.9949, 14.9951)    //  0  (both round to 14.99 at 2 dp)
+compare(14.9949, 14.9951, 4) // -1  (14.9949 < 14.9951 at 4 dp)
+```
+
+> **Note:** values are rounded before comparison. `compare(0.001, 0.002)` → `0` because both round to `0.00` at default precision.
 
 ### Guards
 
@@ -450,17 +461,26 @@ max(0.12345678, 0.12345679, { decimals: 8 })  // 0.12345679
 Returns `true` if two amounts are equal after rounding.
 
 ```js
-equal(19.99, 19.99)    // true
-equal(49.994, 49.99)   // true  (49.994 rounds to 49.99)
-equal(19.99, 20.00)    // false
+equal(19.99, 19.99)      // true
+equal(49.994, 49.99)     // true   (49.994 rounds to 49.99)
+equal(19.99, 20.00)      // false
+
+// Precision changes the boundary
+equal(49.994, 49.999)    // true   (both → 49.99 at 2 dp)
+equal(49.994, 49.999, 3) // false  (49.994 ≠ 49.999 at 3 dp)
+equal(9.9949, 9.9951)    // true   (both → 9.99 at 2 dp)
 ```
 
 #### `greaterThan(lh, rh, decimals?)`
 
 ```js
-greaterThan(24.99, 19.99)   // true
-greaterThan(19.99, 24.99)   // false
-greaterThan(19.99, 19.99)   // false
+greaterThan(24.99, 19.99)      // true
+greaterThan(19.99, 24.99)      // false
+greaterThan(19.99, 19.99)      // false
+
+// Precision changes the result
+greaterThan(9.999, 9.994)      // false  (both round to 9.99 at 2 dp)
+greaterThan(9.999, 9.994, 3)   // true   (9.999 > 9.994 at 3 dp)
 ```
 
 #### `greaterThanOrEqual(lh, rh, decimals?)`
@@ -474,9 +494,13 @@ greaterThanOrEqual(14.99, 19.99)  // false
 #### `lessThan(lh, rh, decimals?)`
 
 ```js
-lessThan(14.99, 19.99)   // true
-lessThan(19.99, 14.99)   // false
-lessThan(19.99, 19.99)   // false
+lessThan(14.99, 19.99)      // true
+lessThan(19.99, 14.99)      // false
+lessThan(19.99, 19.99)      // false
+
+// Precision changes the result
+lessThan(9.994, 9.999)      // false  (both round to 9.99 at 2 dp)
+lessThan(9.994, 9.999, 3)   // true   (9.994 < 9.999 at 3 dp)
 ```
 
 #### `lessThanOrEqual(lh, rh, decimals?)`
