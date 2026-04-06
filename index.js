@@ -11,6 +11,10 @@ const {
   applyMaxDiscount,
   applySumDiscount,
 } = require("./lib/recipes");
+const {
+  format: formatCurrency,
+  convert: convertCurrency,
+} = require("./lib/currency");
 
 /**
  * Compute currency value from Number
@@ -361,6 +365,48 @@ const lessThanOrEqual = (lh, rh, decimals = 2) =>
   arithmetic.lessThanOrEqual(lh, rh, decimals);
 
 /**
+ * Format a monetary amount as a currency string.
+ * Uses Intl.NumberFormat for standard currencies; handles BTC, ETH, SAT manually.
+ *
+ * @param {(Number|String)} amount numeric value
+ * @param {String} [currencyCode='USD'] ISO 4217 currency code or 'BTC'/'ETH'/'SAT'
+ * @param {String} [locale] BCP 47 locale (e.g. 'en-US', 'de-DE')
+ * @param {Object} [options] extra Intl.NumberFormat options
+ * @returns {String} formatted string
+ *
+ * @throws {ArgumentError} if amount is not numeric or currency code is unsupported
+ *
+ * @example
+ * format(1234.56, 'USD', 'en-US')  // '$1,234.56'
+ * format(1234.56, 'EUR', 'de-DE')  // '1.234,56 €'
+ * format(0.12345678, 'BTC')        // '₿0.12345678'
+ */
+const format = (amount, currencyCode, locale, options) =>
+  formatCurrency(amount, currencyCode, locale, options);
+
+/**
+ * Convert an amount from one currency to another using a rates table.
+ * The rates object maps currency codes to their value relative to a common base.
+ *
+ * @param {(Number|String)} amount numeric value in `from` currency
+ * @param {String} from source currency code (e.g. 'USD')
+ * @param {String} to target currency code (e.g. 'EUR')
+ * @param {Object} rates map of currency codes to rates (same base)
+ * @param {Number} [decimals=2] decimal precision for the result
+ * @returns {Number} converted amount
+ *
+ * @throws {ArgumentError} if a currency code is missing from rates or rate is zero
+ *
+ * @example
+ * const rates = { USD: 1, EUR: 0.92, GBP: 0.79 };
+ * convert(100, 'USD', 'EUR', rates)       // 92
+ * convert(100, 'EUR', 'USD', rates)       // 108.7
+ * convert(100, 'USD', 'BTC', rates, 8)    // crypto-precision result
+ */
+const convert = (amount, from, to, rates, decimals) =>
+  convertCurrency(amount, from, to, rates, decimals);
+
+/**
  * @summary Recipes
  * @namespace recipes
  * @public
@@ -488,6 +534,8 @@ module.exports = {
   greaterThanOrEqual,
   lessThan,
   lessThanOrEqual,
+  format,
+  convert,
   ArgumentError,
   recipes,
   ...recipes,

@@ -362,6 +362,48 @@ lessThanOrEqual(1, 1)  // true
 lessThanOrEqual(2, 1)  // false
 ```
 
+### `format(amount, currencyCode?, locale?, options?)`
+
+Formats a monetary amount as a currency string using `Intl.NumberFormat`. Handles standard ISO 4217 currencies and crypto (BTC, ETH, SAT).
+
+```js
+format(1234.56, 'USD', 'en-US')      // '$1,234.56'
+format(1234.56, 'EUR', 'de-DE')      // '1.234,56 €'
+format(1234.56, 'GBP', 'en-GB')      // '£1,234.56'
+format(1234, 'JPY', 'en-US')         // '¥1,234'
+format(-19.99, 'USD', 'en-US')       // '-$19.99'
+
+// Crypto
+format(0.12345678, 'BTC', 'en-US')   // '₿0.12345678'
+format(2.5, 'ETH', 'en-US')          // 'Ξ2.5'
+format(100000, 'SAT', 'en-US')       // 'sat100,000'
+
+// Default: USD
+format(100)                           // '$100.00' (locale-dependent)
+```
+
+Throws `ArgumentError` if the amount is not numeric or the currency code is unsupported.
+
+### `convert(amount, from, to, rates, decimals?)`
+
+Converts an amount between currencies using a rates table. The `rates` object maps currency codes to rates relative to a common base — the library calculates cross-rates automatically.
+
+```js
+const rates = { USD: 1, EUR: 0.92, GBP: 0.79, JPY: 149.5, BTC: 0.0000125 };
+
+convert(100, 'USD', 'EUR', rates)         // 92
+convert(100, 'EUR', 'USD', rates)         // 108.7
+convert(100, 'EUR', 'GBP', rates)         // 85.87  (cross-rate)
+convert(100, 'USD', 'JPY', rates)         // 14950
+convert(1, 'BTC', 'USD', rates)           // 80000
+convert(100, 'USD', 'BTC', rates, 8)      // 0.00125 (crypto precision)
+
+convert(100, 'USD', 'USD', rates)         // 100 (same currency)
+convert('100', 'usd', 'eur', rates)       // 92 (strings + case-insensitive)
+```
+
+Throws `ArgumentError` if a currency code is missing from the rates object or if a rate is zero.
+
 ---
 
 ## Recipes
@@ -508,12 +550,16 @@ Run them yourself: `node bench/bench.js`
 
 ### Crypto precision (8 decimals, ops/sec)
 
-| Operation              | money-math-recipes | currency.js | decimal.js | dinero.js v2 |
-|------------------------|-------------------:|------------:|-----------:|-------------:|
-| `add` (8 decimals)     |      **2,556,626** |   1,170,208 |  1,144,156 |  5,433,023 ¹ |
-| `compare` (8 decimals) |      **1,662,050** |   1,794,539 |  2,955,653 |            — |
+| Operation              | money-math-recipes |   currency.js | decimal.js | dinero.js v2 |
+|------------------------|-------------------:|--------------:|-----------:|-------------:|
+| `add` (8 decimals)     |      **2,556,626** |     1,170,208 |  1,144,156 |  5,433,023 ¹ |
+| `compare` (8 decimals) |      **1,662,050** |     1,794,539 |  2,955,653 |            — |
+| `format` (USD)         |           56,220 ² | **1,299,684** |          — |            — |
+| `convert` (USD→EUR)    |      **3,470,793** |             — |          — |            — |
 
 > ¹ dinero.js v2 operates on integer cents internally (amounts pre-multiplied ×100), which skips the float-to-cents conversion step. It requires a verbose setup (`dinero({ amount: 10, currency: USD })`) for every value — not a drop-in replacement.
+>
+> ² `format()` uses `Intl.NumberFormat` under the hood for full locale + currency symbol support. This is inherently slower than currency.js's custom string formatter, but produces correct i18n output in any locale without extra dependencies.
 
 **money-math-recipes is 2–4× faster than currency.js and decimal.js** across all operations. dinero.js v2 is faster in raw throughput because it works with pre-scaled integers, but requires significantly more boilerplate.
 
@@ -521,7 +567,7 @@ Run them yourself: `node bench/bench.js`
 
 | Library                |        Size |
 |------------------------|------------:|
-| **money-math-recipes** | **22.2 KB** |
+| **money-math-recipes** | **28.4 KB** |
 | currency.js            |     35.4 KB |
 | decimal.js             |    277.7 KB |
 | dinero.js v2           |    837.9 KB |
@@ -540,10 +586,10 @@ Run them yourself: `node bench/bench.js`
 | Safe partition (exact cent distribution)                   |         ✅          |      ✅      |      ✅       |     ❌      |
 | Helpers (isValid, isZero, isPositive…)                     |         ✅          |      ❌      |      ✅       |     ✅      |
 | FX rate conversion                                         |         ✅          |      ✅      |      ✅       |     ❌      |
-| Currency formatting / symbols                              |         ❌          |      ✅      |      ✅       |     ❌      |
+| Currency formatting / symbols                              |         ✅          |      ✅      |      ✅       |     ❌      |
 | Arbitrary precision (beyond 2 decimals)                    |  ✅ (configurable)  |      ✅      |      ✅       |     ✅      |
 | Crypto-ready (BTC satoshis, 8+ decimals)                   |         ✅          |      ✅      |      ✅       |     ✅      |
-| Multi-currency arithmetic                                  |         ❌          |      ❌      |      ✅       |     ❌      |
+| Multi-currency arithmetic                                  |         ✅          |      ❌      |      ✅       |     ❌      |
 | Internationalisation (i18n)                                |         ❌          |      ✅      |      ✅       |     ❌      |
 
 ### When to use what
@@ -552,8 +598,9 @@ Run them yourself: `node bench/bench.js`
 |-----------------------------------------------------|--------------------------|
 | Monetary arithmetic — clean, fast, zero boilerplate | ✅ **money-math-recipes** |
 | Crypto arithmetic (BTC, ETH, configurable decimals) | ✅ **money-math-recipes** |
-| Need currency formatting (`$1,234.56`)              | currency.js or dinero.js |
-| Multi-currency ledger with exchange conversion      | dinero.js v2             |
+| Currency formatting (`$1,234.56`, `€1.234,56`)      | ✅ **money-math-recipes** |
+| Multi-currency conversion with rates table          | ✅ **money-math-recipes** |
+| Multi-currency ledger with currency-typed objects   | dinero.js v2             |
 | Scientific / arbitrary-precision decimals           | decimal.js               |
 | Maximum raw throughput, integer-only data           | dinero.js v2             |
 

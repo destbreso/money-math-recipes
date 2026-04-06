@@ -25,6 +25,8 @@ export const {
   greaterThanOrEqual,
   lessThan,
   lessThanOrEqual,
+  format,
+  convert,
   ArgumentError,
   recipes,
   // recipe top-level re-exports

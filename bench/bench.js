@@ -249,6 +249,41 @@ printTable(
   cryptoCompareResults,
 );
 
+// ─── FORMAT ──────────────────────────────────────────────────────────────────
+
+const { format, convert } = require("../index");
+
+const formatResults = [
+  bench("money-math-recipes  format()", () => format(1234.56, "USD", "en-US")),
+  bench("currency.js  format()", () =>
+    currency(1234.56, { symbol: "$" }).format(),
+  ),
+  bench("Intl.NumberFormat (raw)", () =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(1234.56),
+  ),
+];
+
+printTable("FORMAT  format(1234.56, 'USD') → '$1,234.56'", formatResults);
+
+// ─── CONVERT ─────────────────────────────────────────────────────────────────
+
+const fxRates = { USD: 1, EUR: 0.92, GBP: 0.79 };
+
+const convertResults = [
+  bench("money-math-recipes  convert()", () =>
+    convert(100, "USD", "EUR", fxRates),
+  ),
+  bench("manual fx() + lookup", () => {
+    const rate = fxRates.EUR / fxRates.USD;
+    return Math.round(100 * rate * 100) / 100;
+  }),
+];
+
+printTable("CONVERT  convert(100, 'USD', 'EUR') → 92", convertResults);
+
 // ─── SUMMARY ─────────────────────────────────────────────────────────────────
 
 console.log(`\n${"═".repeat(72)}`);

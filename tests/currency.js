@@ -31,6 +31,8 @@ const {
   greaterThanOrEqual,
   lessThan,
   lessThanOrEqual,
+  format,
+  convert,
   recipes,
 } = require("../index");
 
@@ -1450,6 +1452,177 @@ describe("#money", () => {
       });
       it("0.12345679 <= 0.12345678 is false (8 decimals)", () => {
         expect(lessThanOrEqual(0.12345679, 0.12345678, 8)).toEqual(false);
+      });
+    });
+
+    describe("#format", () => {
+      // Standard currencies
+      it('format(1234.56, "USD", "en-US") → $1,234.56', () => {
+        expect(format(1234.56, "USD", "en-US")).toEqual("$1,234.56");
+      });
+      it('format(1234.56, "EUR", "de-DE") contains 1.234,56', () => {
+        const result = format(1234.56, "EUR", "de-DE");
+        expect(result).toContain("1.234,56");
+        expect(result).toContain("€");
+      });
+      it('format(1234.56, "GBP", "en-GB") → £1,234.56', () => {
+        expect(format(1234.56, "GBP", "en-GB")).toEqual("£1,234.56");
+      });
+      it('format(1234, "JPY", "en-US") contains ¥', () => {
+        const result = format(1234, "JPY", "en-US");
+        expect(result).toContain("¥");
+      });
+      it("format(0, 'USD', 'en-US') → $0.00", () => {
+        expect(format(0, "USD", "en-US")).toEqual("$0.00");
+      });
+      it("format(-19.99, 'USD', 'en-US') → -$19.99", () => {
+        expect(format(-19.99, "USD", "en-US")).toEqual("-$19.99");
+      });
+
+      // Decimals
+      it('format(0.005, "USD", "en-US") → $0.01', () => {
+        expect(format(0.005, "USD", "en-US")).toEqual("$0.01");
+      });
+      it('format(49.995, "USD", "en-US") → $50.00', () => {
+        expect(format(49.995, "USD", "en-US")).toEqual("$50.00");
+      });
+
+      // String amounts
+      it('format("1234.56", "USD", "en-US") → $1,234.56', () => {
+        expect(format("1234.56", "USD", "en-US")).toEqual("$1,234.56");
+      });
+
+      // Crypto currencies
+      it('format(0.12345678, "BTC") starts with ₿', () => {
+        const result = format(0.12345678, "BTC", "en-US");
+        expect(result).toEqual("₿0.12345678");
+      });
+      it('format(1.5, "BTC") → ₿1.5', () => {
+        expect(format(1.5, "BTC", "en-US")).toEqual("₿1.5");
+      });
+      it('format(0.00000001, "BTC", "en-US") → ₿0.00000001', () => {
+        expect(format(0.00000001, "BTC", "en-US")).toEqual("₿0.00000001");
+      });
+      it('format(21000000, "BTC", "en-US") → ₿21,000,000', () => {
+        expect(format(21000000, "BTC", "en-US")).toEqual("₿21,000,000");
+      });
+      it('format(2.5, "ETH", "en-US") starts with Ξ', () => {
+        expect(format(2.5, "ETH", "en-US")).toEqual("Ξ2.5");
+      });
+      it('format(100000, "SAT", "en-US") → sat100,000', () => {
+        expect(format(100000, "SAT", "en-US")).toEqual("sat100,000");
+      });
+
+      // Error cases
+      it("format(NaN) throws ArgumentError", () => {
+        expect(() => format(NaN)).toThrow("amount must be numeric");
+      });
+      it("format(null) throws ArgumentError", () => {
+        expect(() => format(null)).toThrow("amount must be numeric");
+      });
+      it('format(100, "INVALID_CODE") throws ArgumentError', () => {
+        expect(() => format(100, "INVALID_CODE", "en-US")).toThrow(
+          "unsupported currency code",
+        );
+      });
+
+      // Default currency is USD
+      it("format(100) defaults to USD", () => {
+        const result = format(100, undefined, "en-US");
+        expect(result).toEqual("$100.00");
+      });
+    });
+
+    describe("#convert", () => {
+      const rates = { USD: 1, EUR: 0.92, GBP: 0.79, JPY: 149.5, BTC: 0.0000125 };
+
+      // Basic conversions
+      it("100 USD → EUR = 92", () => {
+        expect(convert(100, "USD", "EUR", rates)).toEqual(92);
+      });
+      it("100 EUR → USD = 108.7", () => {
+        expect(convert(100, "EUR", "USD", rates)).toEqual(108.7);
+      });
+      it("100 USD → GBP = 79", () => {
+        expect(convert(100, "USD", "GBP", rates)).toEqual(79);
+      });
+      it("100 GBP → USD = 126.59", () => {
+        expect(convert(100, "GBP", "USD", rates)).toEqual(126.59);
+      });
+      it("100 USD → JPY = 14950", () => {
+        expect(convert(100, "USD", "JPY", rates)).toEqual(14950);
+      });
+
+      // Same currency
+      it("100 USD → USD = 100", () => {
+        expect(convert(100, "USD", "USD", rates)).toEqual(100);
+      });
+
+      // Cross-currency (non-base to non-base)
+      it("100 EUR → GBP (cross)", () => {
+        const result = convert(100, "EUR", "GBP", rates);
+        expect(result).toEqual(85.87);
+      });
+      it("100 GBP → EUR (cross)", () => {
+        const result = convert(100, "GBP", "EUR", rates);
+        expect(result).toEqual(116.46);
+      });
+
+      // Decimal-heavy
+      it("49.99 USD → EUR", () => {
+        expect(convert(49.99, "USD", "EUR", rates)).toEqual(46);
+      });
+      it("0.01 USD → EUR", () => {
+        expect(convert(0.01, "USD", "EUR", rates)).toEqual(0.01);
+      });
+      it("19.99 EUR → USD", () => {
+        expect(convert(19.99, "EUR", "USD", rates)).toEqual(21.73);
+      });
+
+      // Crypto precision
+      it("1 BTC → USD (8 decimals)", () => {
+        expect(convert(1, "BTC", "USD", rates)).toEqual(80000);
+      });
+      it("100 USD → BTC (8 decimals)", () => {
+        expect(convert(100, "USD", "BTC", rates, 8)).toEqual(0.00125);
+      });
+      it("0.5 BTC → EUR", () => {
+        expect(convert(0.5, "BTC", "EUR", rates)).toEqual(36800);
+      });
+
+      // String amount
+      it('"100" USD → EUR = 92', () => {
+        expect(convert("100", "USD", "EUR", rates)).toEqual(92);
+      });
+
+      // NaN
+      it("NaN amount returns NaN", () => {
+        expect(convert(NaN, "USD", "EUR", rates)).toEqual(NaN);
+      });
+      it('"abc" amount returns NaN', () => {
+        expect(convert("abc", "USD", "EUR", rates)).toEqual(NaN);
+      });
+
+      // Case insensitive
+      it("case insensitive currency codes", () => {
+        expect(convert(100, "usd", "eur", rates)).toEqual(92);
+      });
+
+      // Error cases
+      it("missing from currency throws", () => {
+        expect(() => convert(100, "CHF", "EUR", rates)).toThrow(
+          "missing rate for currency: CHF",
+        );
+      });
+      it("missing to currency throws", () => {
+        expect(() => convert(100, "USD", "CHF", rates)).toThrow(
+          "missing rate for currency: CHF",
+        );
+      });
+      it("zero rate throws", () => {
+        expect(() => convert(100, "USD", "EUR", { USD: 0, EUR: 0.92 })).toThrow(
+          "rate for USD cannot be zero",
+        );
       });
     });
   });

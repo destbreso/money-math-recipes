@@ -174,6 +174,33 @@ export declare function lessThanOrEqual(
   decimals?: number,
 ): boolean;
 
+// ─── Currency formatting & conversion ───────────────────────────────────────
+
+/**
+ * Format a monetary amount as a currency string.
+ * Uses `Intl.NumberFormat` for ISO 4217 currencies. Handles BTC, ETH, SAT manually.
+ * @throws {ArgumentError} if amount is not numeric or currency code is unsupported
+ */
+export declare function format(
+  amount: number | string,
+  currencyCode?: string,
+  locale?: string,
+  options?: Intl.NumberFormatOptions,
+): string;
+
+/**
+ * Convert an amount from one currency to another using a rates table.
+ * The `rates` object maps currency codes to their exchange rate relative to a common base.
+ * @throws {ArgumentError} if a currency code is missing from rates or rate is zero
+ */
+export declare function convert(
+  amount: number | string,
+  from: string,
+  to: string,
+  rates: Record<string, number>,
+  decimals?: number,
+): number;
+
 // ─── Recipes (top-level re-exports for convenience) ─────────────────────────
 
 /** Returns the larger of `p`% of `amount` or fixed `fee`. */
@@ -294,6 +321,8 @@ declare const money: {
   greaterThanOrEqual: typeof greaterThanOrEqual;
   lessThan: typeof lessThan;
   lessThanOrEqual: typeof lessThanOrEqual;
+  format: typeof format;
+  convert: typeof convert;
   ArgumentError: typeof ArgumentError;
   recipes: typeof recipes;
   maxTax: typeof maxTax;
