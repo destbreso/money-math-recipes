@@ -229,6 +229,78 @@ isNegative(0)   // false
 isNegative(1)   // false
 ```
 
+### `abs(amount, decimals?)`
+
+Returns the absolute value of a monetary amount.
+
+```js
+abs(-10.50)  // 10.50
+abs(10.50)   // 10.50
+abs('-3.14') // 3.14
+```
+
+### `min(...amounts)` / `min(amounts[])`
+
+Returns the smallest value from the given amounts.
+
+```js
+min(3, 1, 2)         // 1
+min([10.5, 3.2, 7])  // 3.2
+min(-1, -5, 0)       // -5
+```
+
+### `max(...amounts)` / `max(amounts[])`
+
+Returns the largest value from the given amounts.
+
+```js
+max(3, 1, 2)         // 3
+max([10.5, 3.2, 7])  // 10.5
+max(-1, -5, 0)       // 0
+```
+
+### `equal(lh, rh, decimals?)`
+
+Returns `true` if two amounts are equal after rounding.
+
+```js
+equal(1, 1)       // true
+equal(1, 1.004)   // true  (both round to 1.00)
+equal(1, 2)       // false
+```
+
+### `greaterThan(lh, rh, decimals?)`
+
+```js
+greaterThan(2, 1)    // true
+greaterThan(1, 2)    // false
+greaterThan(1, 1)    // false
+```
+
+### `greaterThanOrEqual(lh, rh, decimals?)`
+
+```js
+greaterThanOrEqual(2, 1)  // true
+greaterThanOrEqual(1, 1)  // true
+greaterThanOrEqual(1, 2)  // false
+```
+
+### `lessThan(lh, rh, decimals?)`
+
+```js
+lessThan(1, 2)    // true
+lessThan(2, 1)    // false
+lessThan(1, 1)    // false
+```
+
+### `lessThanOrEqual(lh, rh, decimals?)`
+
+```js
+lessThanOrEqual(1, 2)  // true
+lessThanOrEqual(1, 1)  // true
+lessThanOrEqual(2, 1)  // false
+```
+
 ---
 
 ## Recipes
@@ -365,23 +437,23 @@ Run them yourself: `node bench/bench.js`
 
 | Operation               | money-math-recipes |   currency.js | decimal.js | dinero.js v2 |
 |-------------------------|-------------------:|--------------:|-----------:|-------------:|
-| `add(0.1, 0.2)`         |      **2,490,446** |     1,541,064 |  1,578,686 |  3,526,022 ¹ |
-| `subtract(1.01, 0.99)`  |      **3,222,149** |     1,563,253 |  1,482,781 |  4,964,567 ¹ |
-| `multiply(165, 1.40)`   |      **3,396,472** |     1,306,572 |  1,145,595 |  7,104,413 ¹ |
-| `value()` rounding      |          3,339,597 | **4,579,211** |  1,970,078 |            — |
-| `partition(1, 3)`       |      **1,215,691** |       607,486 |          — |            — |
-| `sum([10 items])`       |        **571,907** |       135,869 |    339,634 |            — |
-| `percent(524.25, 8.75)` |      **3,058,682** |     1,016,530 |    929,596 |            — |
+| `add(0.1, 0.2)`         |      **2,073,173** |     1,181,962 |  1,014,720 |  3,002,325 ¹ |
+| `subtract(1.01, 0.99)`  |      **3,226,881** |     1,515,753 |  1,497,059 |  4,767,029 ¹ |
+| `multiply(165, 1.40)`   |      **4,135,555** |     1,946,167 |  2,561,339 |  7,835,476 ¹ |
+| `value()` rounding      |          3,361,044 | **4,358,140** |  1,862,179 |            — |
+| `partition(1, 3)`       |      **1,279,959** |       639,595 |          — |  1,165,500 ¹ |
+| `sum([10 items])`       |        **596,720** |       137,816 |    287,954 |            — |
+| `percent(524.25, 8.75)` |      **1,522,576** |       916,784 |    944,234 |            — |
 
-> ¹ dinero.js v2 operates on integer cents internally (amounts pre-multiplied ×100), which skips the float-to-cents conversion step. It requires a verbose setup (`{ amount: 10, currency: { ... } }`) for every value — not comparable as a drop-in usage.
+> ¹ dinero.js v2 operates on integer cents internally (amounts pre-multiplied ×100), which skips the float-to-cents conversion step. It requires a verbose setup (`dinero({ amount: 10, currency: USD })`) for every value — not a drop-in replacement.
 
-**money-math-recipes is 2–3× faster than currency.js and decimal.js** across all operations. It beats dinero.js when comparing equivalent ease-of-use.
+**money-math-recipes is 2–4× faster than currency.js and decimal.js** across all operations. dinero.js v2 is faster in raw throughput because it works with pre-scaled integers, but requires significantly more boilerplate.
 
 ### Package size (total JS files on disk)
 
 | Library                |        Size |
 |------------------------|------------:|
-| **money-math-recipes** | **18.5 KB** |
+| **money-math-recipes** | **22.2 KB** |
 | currency.js            |     35.4 KB |
 | decimal.js             |    277.7 KB |
 | dinero.js v2           |    837.9 KB |
@@ -398,10 +470,10 @@ Run them yourself: `node bench/bench.js`
 | Tax recipes (applyTax, maxTax, sumTax)                     |         ✅          |      ❌      |      ❌       |     ❌      |
 | Discount recipes (applyDiscount, maxDiscount, sumDiscount) |         ✅          |      ❌      |      ❌       |     ❌      |
 | Safe partition (exact cent distribution)                   |         ✅          |      ✅      |      ✅       |     ❌      |
-| Helpers (isValid, isZero, isPositive…)                     |         ✅          |      ❌      |      ✅       |     ❌      |
+| Helpers (isValid, isZero, isPositive…)                     |         ✅          |      ❌      |      ✅       |     ✅      |
 | FX rate conversion                                         |         ✅          |      ✅      |      ✅       |     ❌      |
 | Currency formatting / symbols                              |         ❌          |      ✅      |      ✅       |     ❌      |
-| Arbitrary precision (beyond 2 decimals)                    |  ✅ (configurable)  |      ❌      |      ✅       |     ✅      |
+| Arbitrary precision (beyond 2 decimals)                    |  ✅ (configurable)  |      ✅      |      ✅       |     ✅      |
 | Multi-currency arithmetic                                  |         ❌          |      ❌      |      ✅       |     ❌      |
 | Internationalisation (i18n)                                |         ❌          |      ✅      |      ✅       |     ❌      |
 

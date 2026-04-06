@@ -23,6 +23,14 @@ const {
   applyDiscount,
   applyMaxDiscount,
   applySumDiscount,
+  abs,
+  min,
+  max,
+  equal,
+  greaterThan,
+  greaterThanOrEqual,
+  lessThan,
+  lessThanOrEqual,
   recipes,
 } = require("../index");
 
@@ -788,6 +796,153 @@ describe("#money", () => {
         expect(recipes.applySumDiscount(100, 10, 20)).toEqual(
           applySumDiscount(100, 10, 20),
         );
+      });
+    });
+
+    describe("#abs", () => {
+      it("abs(-10.50) is 10.5", () => {
+        expect(abs(-10.5)).toEqual(10.5);
+      });
+      it("abs(10.50) is 10.5", () => {
+        expect(abs(10.5)).toEqual(10.5);
+      });
+      it("abs(0) is 0", () => {
+        expect(abs(0)).toEqual(0);
+      });
+      it("abs(-0.001) is 0.01", () => {
+        expect(abs(-0.001)).toEqual(0.01);
+      });
+      it("abs(NaN) is NaN", () => {
+        expect(abs(NaN)).toEqual(NaN);
+      });
+      it("abs('-5.25') is 5.25", () => {
+        expect(abs("-5.25")).toEqual(5.25);
+      });
+      it("abs(-1.2345, 4) is 1.2345", () => {
+        expect(abs(-1.2345, 4)).toEqual(1.2345);
+      });
+    });
+
+    describe("#min", () => {
+      it("min(10, 20, 5) is 5", () => {
+        expect(min(10, 20, 5)).toEqual(5);
+      });
+      it("min([10, 20, 5]) is 5", () => {
+        expect(min([10, 20, 5])).toEqual(5);
+      });
+      it("min(0.1, 0.2) is 0.1", () => {
+        expect(min(0.1, 0.2)).toEqual(0.1);
+      });
+      it("min(-1, 0, 1) is -1", () => {
+        expect(min(-1, 0, 1)).toEqual(-1);
+      });
+      it("min(NaN, 1) is NaN", () => {
+        expect(min(NaN, 1)).toEqual(NaN);
+      });
+      it("min(5) is 5", () => {
+        expect(min(5)).toEqual(5);
+      });
+      it("min('10', '3', '7') is 3", () => {
+        expect(min("10", "3", "7")).toEqual(3);
+      });
+    });
+
+    describe("#max", () => {
+      it("max(10, 20, 5) is 20", () => {
+        expect(max(10, 20, 5)).toEqual(20);
+      });
+      it("max([10, 20, 5]) is 20", () => {
+        expect(max([10, 20, 5])).toEqual(20);
+      });
+      it("max(0.1, 0.2) is 0.2", () => {
+        expect(max(0.1, 0.2)).toEqual(0.2);
+      });
+      it("max(-1, 0, 1) is 1", () => {
+        expect(max(-1, 0, 1)).toEqual(1);
+      });
+      it("max(NaN, 1) is NaN", () => {
+        expect(max(NaN, 1)).toEqual(NaN);
+      });
+      it("max(5) is 5", () => {
+        expect(max(5)).toEqual(5);
+      });
+    });
+
+    describe("#equal", () => {
+      it("1 equals 1", () => {
+        expect(equal(1, 1)).toEqual(true);
+      });
+      it("0.1 equals 0.10", () => {
+        expect(equal(0.1, 0.1)).toEqual(true);
+      });
+      it("1 does not equal 2", () => {
+        expect(equal(1, 2)).toEqual(false);
+      });
+      it("0.001 equals 0.002 (both round to 0.01)", () => {
+        expect(equal(0.001, 0.002)).toEqual(true);
+      });
+      it("NaN does not equal NaN", () => {
+        expect(equal(NaN, NaN)).toEqual(false);
+      });
+    });
+
+    describe("#greaterThan", () => {
+      it("2 > 1 is true", () => {
+        expect(greaterThan(2, 1)).toEqual(true);
+      });
+      it("1 > 1 is false", () => {
+        expect(greaterThan(1, 1)).toEqual(false);
+      });
+      it("1 > 2 is false", () => {
+        expect(greaterThan(1, 2)).toEqual(false);
+      });
+      it("NaN > 1 is false", () => {
+        expect(greaterThan(NaN, 1)).toEqual(false);
+      });
+    });
+
+    describe("#greaterThanOrEqual", () => {
+      it("2 >= 1 is true", () => {
+        expect(greaterThanOrEqual(2, 1)).toEqual(true);
+      });
+      it("1 >= 1 is true", () => {
+        expect(greaterThanOrEqual(1, 1)).toEqual(true);
+      });
+      it("1 >= 2 is false", () => {
+        expect(greaterThanOrEqual(1, 2)).toEqual(false);
+      });
+      it("NaN >= 1 is false", () => {
+        expect(greaterThanOrEqual(NaN, 1)).toEqual(false);
+      });
+    });
+
+    describe("#lessThan", () => {
+      it("1 < 2 is true", () => {
+        expect(lessThan(1, 2)).toEqual(true);
+      });
+      it("1 < 1 is false", () => {
+        expect(lessThan(1, 1)).toEqual(false);
+      });
+      it("2 < 1 is false", () => {
+        expect(lessThan(2, 1)).toEqual(false);
+      });
+      it("NaN < 1 is false", () => {
+        expect(lessThan(NaN, 1)).toEqual(false);
+      });
+    });
+
+    describe("#lessThanOrEqual", () => {
+      it("1 <= 2 is true", () => {
+        expect(lessThanOrEqual(1, 2)).toEqual(true);
+      });
+      it("1 <= 1 is true", () => {
+        expect(lessThanOrEqual(1, 1)).toEqual(true);
+      });
+      it("2 <= 1 is false", () => {
+        expect(lessThanOrEqual(2, 1)).toEqual(false);
+      });
+      it("NaN <= 1 is false", () => {
+        expect(lessThanOrEqual(NaN, 1)).toEqual(false);
       });
     });
   });

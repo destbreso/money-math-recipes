@@ -94,6 +94,52 @@ export declare function isPositive(amount: number | string): boolean;
 /** Returns true if the monetary value of `amount` is less than 0. */
 export declare function isNegative(amount: number | string): boolean;
 
+/** Returns the absolute (non-negative) monetary value of `amount`. */
+export declare function abs(amount: number | string, decimals?: number): number;
+
+/** Returns the smallest monetary value from a list of amounts. Returns NaN if any value is invalid. */
+export declare function min(...amounts: Array<number | string>): number;
+export declare function min(amounts: Array<number | string>): number;
+
+/** Returns the largest monetary value from a list of amounts. Returns NaN if any value is invalid. */
+export declare function max(...amounts: Array<number | string>): number;
+export declare function max(amounts: Array<number | string>): number;
+
+/** Returns true if two monetary amounts are equal after rounding. */
+export declare function equal(
+  lh: number | string,
+  rh: number | string,
+  decimals?: number,
+): boolean;
+
+/** Returns true if lh is strictly greater than rh. */
+export declare function greaterThan(
+  lh: number | string,
+  rh: number | string,
+  decimals?: number,
+): boolean;
+
+/** Returns true if lh is greater than or equal to rh. */
+export declare function greaterThanOrEqual(
+  lh: number | string,
+  rh: number | string,
+  decimals?: number,
+): boolean;
+
+/** Returns true if lh is strictly less than rh. */
+export declare function lessThan(
+  lh: number | string,
+  rh: number | string,
+  decimals?: number,
+): boolean;
+
+/** Returns true if lh is less than or equal to rh. */
+export declare function lessThanOrEqual(
+  lh: number | string,
+  rh: number | string,
+  decimals?: number,
+): boolean;
+
 // ─── Recipes (top-level re-exports for convenience) ─────────────────────────
 
 /** Returns the larger of `p`% of `amount` or fixed `fee`. */
@@ -206,6 +252,14 @@ declare const money: {
   isZero: typeof isZero;
   isPositive: typeof isPositive;
   isNegative: typeof isNegative;
+  abs: typeof abs;
+  min: typeof min;
+  max: typeof max;
+  equal: typeof equal;
+  greaterThan: typeof greaterThan;
+  greaterThanOrEqual: typeof greaterThanOrEqual;
+  lessThan: typeof lessThan;
+  lessThanOrEqual: typeof lessThanOrEqual;
   ArgumentError: typeof ArgumentError;
   recipes: typeof recipes;
   maxTax: typeof maxTax;

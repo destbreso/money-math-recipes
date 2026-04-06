@@ -26,6 +26,7 @@ const {
   add: dAdd,
   subtract: dSubtract,
   multiply: dMultiply,
+  allocate: dAllocate,
   toSnapshot,
 } = require("dinero.js");
 const Decimal = require("decimal.js");
@@ -151,15 +152,8 @@ const partitionResults = [
   ),
   bench("dinero.js v2  allocate", () => {
     const a = dinero({ amount: 100, currency: USD });
-    // dinero v2 allocate is not available in this build, skip with manual impl
-    const total = 100;
-    const parts = 3;
-    const base = Math.floor(total / parts);
-    const rem = total % parts;
-    return Array.from(
-      { length: parts },
-      (_, i) => (base + (i < rem ? 1 : 0)) / 100,
-    );
+    const parts = dAllocate(a, [1, 1, 1]);
+    return parts.map((p) => toSnapshot(p).amount);
   }),
   bench("Native JS manual", () => {
     const total = 1;
