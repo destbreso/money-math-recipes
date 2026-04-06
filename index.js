@@ -95,6 +95,7 @@ const fx = (amount, fxRate, decimals = 2) =>
  * sum(0.1,0.2,'-0.3') // 0
  * sum([0.1,0.2,-0.3]) // 0
  * sum(...['0.1','0.2','-0.3']) // 0
+ * sum(0.12345678, 0.00000001, { decimals: 8 }) // 0.12345679
  * sum('abcd','{a: 1}') // NaN
  */
 const sum = (...amounts) => arithmetic.sum(...amounts);
@@ -104,16 +105,19 @@ const sum = (...amounts) => arithmetic.sum(...amounts);
  * @public
  * @param {Number} amount base amount value
  * @param {Number} p percent value
+ * @param {Number} [decimals] decimal places (default 2)
  * @returns {Number} Monetary value of amount*p/100
  *
  */
-const percent = (amount, p) => arithmetic.percent(amount, p);
+const percent = (amount, p, decimals = 2) =>
+  arithmetic.percent(amount, p, decimals);
 
 /**
  * Difference of two amounts
  *
  * @param {Number} x - amount1
  * @param {Number} y - amount2
+ * @param {Number} [decimals] decimal places (default 2)
  * @returns {Number} Monetary value of amount1 - amount2
  *
  * @example
@@ -122,13 +126,14 @@ const percent = (amount, p) => arithmetic.percent(amount, p);
  * subtract(23.42, 19.13) // 4.29
  */
 
-const subtract = (x, y) => arithmetic.sum(x, -y);
+const subtract = (x, y, decimals = 2) => arithmetic.sum(x, -y, { decimals });
 
 /**
  * add two amounts
  *
  * @param {Number} x - amount1
  * @param {Number} y - amount2
+ * @param {Number} [decimals] decimal places (default 2)
  * @returns {Number} Monetary value of amount1 + amount2
  *
  * @example
@@ -136,7 +141,7 @@ const subtract = (x, y) => arithmetic.sum(x, -y);
  * add(0.1, 0.2) // 0.3
  */
 
-const add = (x, y) => arithmetic.sum(x, y);
+const add = (x, y, decimals = 2) => arithmetic.sum(x, y, { decimals });
 
 /**
  * Multiply an amount by a factor
@@ -218,6 +223,7 @@ const isValid = (amount) => arithmetic.isValid(amount);
  * Check if monetary value rounds to exactly 0
  * @public
  * @param {(Number|String)} amount numeric value
+ * @param {Number} [decimals] decimal places (default 2)
  * @returns {boolean}
  *
  * @example
@@ -225,12 +231,13 @@ const isValid = (amount) => arithmetic.isValid(amount);
  * isZero(1)     // false
  * isZero(0.001) // false (rounds up to 0.01)
  */
-const isZero = (amount) => arithmetic.isZero(amount);
+const isZero = (amount, decimals = 2) => arithmetic.isZero(amount, decimals);
 
 /**
  * Check if monetary value is greater than 0
  * @public
  * @param {(Number|String)} amount numeric value
+ * @param {Number} [decimals] decimal places (default 2)
  * @returns {boolean}
  *
  * @example
@@ -238,12 +245,14 @@ const isZero = (amount) => arithmetic.isZero(amount);
  * isPositive(0)  // false
  * isPositive(-1) // false
  */
-const isPositive = (amount) => arithmetic.isPositive(amount);
+const isPositive = (amount, decimals = 2) =>
+  arithmetic.isPositive(amount, decimals);
 
 /**
  * Check if monetary value is less than 0
  * @public
  * @param {(Number|String)} amount numeric value
+ * @param {Number} [decimals] decimal places (default 2)
  * @returns {boolean}
  *
  * @example
@@ -251,7 +260,8 @@ const isPositive = (amount) => arithmetic.isPositive(amount);
  * isNegative(0)  // false
  * isNegative(1)  // false
  */
-const isNegative = (amount) => arithmetic.isNegative(amount);
+const isNegative = (amount, decimals = 2) =>
+  arithmetic.isNegative(amount, decimals);
 
 /**
  * Returns the absolute (non-negative) monetary value

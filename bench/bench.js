@@ -202,6 +202,53 @@ const percentResults = [
 
 printTable("PERCENT  percent(524.25, 8.75) → 45.88", percentResults);
 
+// ─── CRYPTO PRECISION (8 DECIMALS) ──────────────────────────────────────────
+
+const { abs, min, max, equal, greaterThan } = require("../index");
+
+const cryptoAddResults = [
+  bench("money-math-recipes  add(,,8)", () =>
+    sum(0.12345678, 0.00000001, { decimals: 8 }),
+  ),
+  bench(
+    "currency.js  precision:8",
+    () => currency(0.12345678, { precision: 8 }).add(0.00000001).value,
+  ),
+  bench("decimal.js  toDP(8)", () =>
+    new Decimal("0.12345678").plus("0.00000001").toDecimalPlaces(8).toNumber(),
+  ),
+  bench("dinero.js v2  (exp:8)", () => {
+    const BTC = { code: "BTC", base: 10, exponent: 8 };
+    const a = dinero({ amount: 12345678, currency: BTC });
+    const b = dinero({ amount: 1, currency: BTC });
+    return toSnapshot(dAdd(a, b)).amount;
+  }),
+];
+
+printTable(
+  "CRYPTO ADD  add(0.12345678, 0.00000001) → 8 decimals",
+  cryptoAddResults,
+);
+
+const cryptoCompareResults = [
+  bench("money-math-recipes  compare(,,8)", () =>
+    compare(0.12345678, 0.12345679, 8),
+  ),
+  bench("currency.js  precision:8", () => {
+    const a = currency(0.12345678, { precision: 8 });
+    const b = currency(0.12345679, { precision: 8 });
+    return a.value < b.value ? -1 : a.value > b.value ? 1 : 0;
+  }),
+  bench("decimal.js  comparedTo", () =>
+    new Decimal("0.12345678").comparedTo("0.12345679"),
+  ),
+];
+
+printTable(
+  "CRYPTO COMPARE  compare(0.12345678, 0.12345679) → 8 decimals",
+  cryptoCompareResults,
+);
+
 // ─── SUMMARY ─────────────────────────────────────────────────────────────────
 
 console.log(`\n${"═".repeat(72)}`);

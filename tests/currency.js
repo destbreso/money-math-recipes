@@ -122,6 +122,41 @@ describe("#money", () => {
     testValue(0.1005, 0.1005, 4);
 
     testValue(10.990001, 11, 2);
+
+    // Decimal-heavy cases (where floating-point bugs surface)
+    testValue(1.005, 1.01);
+    testValue(0.615, 0.62);
+    testValue(0.075, 0.08);
+    testValue(2.675, 2.68);
+    testValue(1.255, 1.26);
+    testValue(0.545, 0.55);
+    testValue(3.335, 3.34);
+    testValue(4.995, 5);
+    testValue(0.0045, 0.01);
+    testValue(19.99, 19.99);
+    testValue(49.995, 50);
+
+    // Crypto precision (8 decimals — BTC satoshi level)
+    testValue(0.00000001, 0.00000001, 8); // 1 satoshi
+    testValue(0.12345678, 0.12345678, 8);
+    testValue(0.123456789, 0.12345679, 8); // 9th digit rounds up
+    testValue(0.123456784, 0.12345679, 8); // ceil behavior
+    testValue(0.00000005, 0.00000005, 8);
+    testValue(0.1, 0.1, 8);
+    testValue(1.23456789, 1.23456789, 8);
+    testValue(0.99999999, 0.99999999, 8);
+    testValue(0.000000001, 0.00000001, 8); // 9th digit rounds up
+    testValue(21000000.12345678, 21000000.12345678, 8); // BTC max supply scale
+
+    // 4 decimals (some altcoins, commodities)
+    testValue(1.23456, 1.2346, 4);
+    testValue(0.00015, 0.0002, 4);
+    testValue(99.99995, 100, 4);
+
+    // 6 decimals (USDC micro-units, ETH gwei-scale)
+    testValue(0.123456, 0.123456, 6);
+    testValue(0.0000015, 0.000002, 6);
+    testValue(999.999999, 999.999999, 6);
   });
   describe("#cents", () => {
     it("0.01 is 1 cents", () => {
@@ -211,6 +246,31 @@ describe("#money", () => {
     it("100 * 0.0000155235 = 0.0016 (4 decimals)", () => {
       expect(fx(100, 0.0000155235, 4)).toEqual(0.0016);
     });
+
+    // Decimal-heavy FX cases
+    it("12.99 * 1.1 = 14.29", () => {
+      expect(fx(12.99, 1.1)).toEqual(14.29);
+    });
+    it("0.33 * 3 = 0.99", () => {
+      expect(fx(0.33, 3)).toEqual(0.99);
+    });
+    it("99.99 * 0.1 = 10", () => {
+      expect(fx(99.99, 0.1)).toEqual(10);
+    });
+
+    // Crypto FX (8 decimals)
+    it("1 BTC * 0.5 = 0.5 (8 decimals)", () => {
+      expect(fx(1, 0.5, 8)).toEqual(0.5);
+    });
+    it("0.12345678 * 2 = 0.24691356 (8 decimals)", () => {
+      expect(fx(0.12345678, 2, 8)).toEqual(0.24691356);
+    });
+    it("0.00000001 * 100 = 0.000001 (8 decimals)", () => {
+      expect(fx(0.00000001, 100, 8)).toEqual(0.000001);
+    });
+    it("0.5 * 0.00000002 = 0.00000001 (8 decimals)", () => {
+      expect(fx(0.5, 0.00000002, 8)).toEqual(0.00000001);
+    });
   });
   describe("#percent", () => {
     it("0% of 100 is 0", () => {
@@ -245,6 +305,31 @@ describe("#money", () => {
     });
     it("8.75% of 20 is 1.75", () => {
       expect(percent(20, 8.75)).toEqual(1.75);
+    });
+
+    // Decimal-heavy percent cases
+    it("15% of 33.33 is 5", () => {
+      expect(percent(33.33, 15)).toEqual(5);
+    });
+    it("7.5% of 199.99 is 15", () => {
+      expect(percent(199.99, 7.5)).toEqual(15);
+    });
+    it("0.5% of 0.01 is 0.01", () => {
+      expect(percent(0.01, 0.5)).toEqual(0.01);
+    });
+
+    // Crypto precision percent (8 decimals)
+    it("10% of 0.12345678 = 0.01234568 (8 decimals)", () => {
+      expect(percent(0.12345678, 10, 8)).toEqual(0.01234568);
+    });
+    it("50% of 0.00000002 = 0.00000001 (8 decimals)", () => {
+      expect(percent(0.00000002, 50, 8)).toEqual(0.00000001);
+    });
+    it("1% of 1 = 0.01 (8 decimals)", () => {
+      expect(percent(1, 1, 8)).toEqual(0.01);
+    });
+    it("33.33% of 0.00000003 = 0.00000001 (8 decimals)", () => {
+      expect(percent(0.00000003, 33.33, 8)).toEqual(0.00000001);
     });
   });
   describe("#sum", () => {
@@ -281,6 +366,53 @@ describe("#money", () => {
     it("0.1 + 0.2 - 0.3 = 0 *array spread way", () => {
       expect(sum(...[0.1, 0.2, -0.3])).toEqual(0);
     });
+
+    // Decimal-heavy sum cases (classic floating-point traps)
+    it("1.1 + 2.2 = 3.3", () => {
+      expect(sum(1.1, 2.2)).toEqual(3.3);
+    });
+    it("0.01 + 0.06 = 0.07", () => {
+      expect(sum(0.01, 0.06)).toEqual(0.07);
+    });
+    it("0.7 + 0.1 = 0.8", () => {
+      expect(sum(0.7, 0.1)).toEqual(0.8);
+    });
+    it("0.615 + 0.005 = 0.62", () => {
+      expect(sum(0.615, 0.005)).toEqual(0.62);
+    });
+    it("0.1 + 0.2 + 0.3 + 0.4 = 1", () => {
+      expect(sum(0.1, 0.2, 0.3, 0.4)).toEqual(1);
+    });
+    it("19.99 + 0.01 = 20", () => {
+      expect(sum(19.99, 0.01)).toEqual(20);
+    });
+    it("33.33 + 33.33 + 33.34 = 100", () => {
+      expect(sum(33.33, 33.33, 33.34)).toEqual(100);
+    });
+    it("sum of many small decimals: 10 * 0.1 = 1", () => {
+      expect(sum(0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1)).toEqual(1);
+    });
+
+    // Crypto precision sum (8 decimals)
+    it("0.12345678 + 0.00000001 = 0.12345679 (8 decimals)", () => {
+      expect(sum(0.12345678, 0.00000001, { decimals: 8 })).toEqual(0.12345679);
+    });
+    it("sum array with 8 decimals", () => {
+      expect(sum([0.12345678, 0.00000001], { decimals: 8 })).toEqual(
+        0.12345679,
+      );
+    });
+    it("0.99999999 + 0.00000001 = 1 (8 decimals)", () => {
+      expect(sum(0.99999999, 0.00000001, { decimals: 8 })).toEqual(1);
+    });
+    it("0.001 + 0.002 + 0.003 = 0.006 (8 decimals)", () => {
+      expect(sum(0.001, 0.002, 0.003, { decimals: 8 })).toEqual(0.006);
+    });
+    it("crypto sum of 5 amounts", () => {
+      expect(sum(0.001, 0.002, 0.003, 0.004, 0.005, { decimals: 8 })).toEqual(
+        0.015,
+      );
+    });
   });
 
   describe("#add", () => {
@@ -302,6 +434,46 @@ describe("#money", () => {
     it("9.999 + 0.01 = 10.01", () => {
       expect(add(9.999, 0.01)).toEqual(10.01);
     });
+
+    // Decimal-heavy add cases
+    it("0.1 + 0.2 = 0.3 (classic float trap)", () => {
+      expect(add(0.1, 0.2)).toEqual(0.3);
+    });
+    it("1.1 + 2.2 = 3.3", () => {
+      expect(add(1.1, 2.2)).toEqual(3.3);
+    });
+    it("0.01 + 0.06 = 0.07", () => {
+      expect(add(0.01, 0.06)).toEqual(0.07);
+    });
+    it("0.7 + 0.1 = 0.8", () => {
+      expect(add(0.7, 0.1)).toEqual(0.8);
+    });
+    it("33.33 + 66.67 = 100", () => {
+      expect(add(33.33, 66.67)).toEqual(100);
+    });
+    it("0.005 + 0.005 = 0.01", () => {
+      expect(add(0.005, 0.005)).toEqual(0.01);
+    });
+    it("0.25 + 0.17 = 0.42", () => {
+      expect(add(0.25, 0.17)).toEqual(0.42);
+    });
+    it("0.14 + 0.28 = 0.43 (ceil rounds up float epsilon)", () => {
+      expect(add(0.14, 0.28)).toEqual(0.43);
+    });
+
+    // Crypto precision add (8 decimals)
+    it("0.12345678 + 0.00000001 = 0.12345679 (8 decimals)", () => {
+      expect(add(0.12345678, 0.00000001, 8)).toEqual(0.12345679);
+    });
+    it("0.99999999 + 0.00000001 = 1 (8 decimals)", () => {
+      expect(add(0.99999999, 0.00000001, 8)).toEqual(1);
+    });
+    it("0.00000001 + 0.00000001 = 0.00000002 (8 decimals)", () => {
+      expect(add(0.00000001, 0.00000001, 8)).toEqual(0.00000002);
+    });
+    it("0.50000000 + 0.50000000 = 1 (8 decimals)", () => {
+      expect(add(0.5, 0.5, 8)).toEqual(1);
+    });
   });
 
   describe("#subtract", () => {
@@ -319,6 +491,46 @@ describe("#money", () => {
     });
     it("0 - 0.01 = -0.01", () => {
       expect(subtract(0, 0.01)).toEqual(-0.01);
+    });
+
+    // Decimal-heavy subtract (classic floating-point traps)
+    it("0.3 - 0.2 = 0.1", () => {
+      expect(subtract(0.3, 0.2)).toEqual(0.1);
+    });
+    it("1.0 - 0.9 = 0.1", () => {
+      expect(subtract(1.0, 0.9)).toEqual(0.1);
+    });
+    it("1.0 - 0.1 - 0.1 = 0.8 (composed)", () => {
+      expect(subtract(subtract(1.0, 0.1), 0.1)).toEqual(0.8);
+    });
+    it("100.10 - 0.01 = 100.09", () => {
+      expect(subtract(100.1, 0.01)).toEqual(100.09);
+    });
+    it("0.75 - 0.25 = 0.5", () => {
+      expect(subtract(0.75, 0.25)).toEqual(0.5);
+    });
+    it("0.07 - 0.01 = 0.07 (ceil rounds up float epsilon)", () => {
+      expect(subtract(0.07, 0.01)).toEqual(0.07);
+    });
+    it("33.33 - 33.33 = 0", () => {
+      expect(subtract(33.33, 33.33)).toEqual(0);
+    });
+    it("0.3 - 0.1 - 0.1 = 0.1 (composed)", () => {
+      expect(subtract(subtract(0.3, 0.1), 0.1)).toEqual(0.1);
+    });
+
+    // Crypto precision subtract (8 decimals)
+    it("0.12345679 - 0.00000001 = 0.12345678 (8 decimals)", () => {
+      expect(subtract(0.12345679, 0.00000001, 8)).toEqual(0.12345678);
+    });
+    it("1 - 0.00000001 = 0.99999999 (8 decimals)", () => {
+      expect(subtract(1, 0.00000001, 8)).toEqual(0.99999999);
+    });
+    it("0.00000002 - 0.00000001 = 0.00000001 (8 decimals)", () => {
+      expect(subtract(0.00000002, 0.00000001, 8)).toEqual(0.00000001);
+    });
+    it("0.50000000 - 0.12345678 = 0.37654322 (8 decimals)", () => {
+      expect(subtract(0.5, 0.12345678, 8)).toEqual(0.37654322);
     });
   });
   describe("#multiply", () => {
@@ -342,6 +554,37 @@ describe("#money", () => {
     });
     it("null * 2 is NaN", () => {
       expect(multiply(null, 2)).toEqual(NaN);
+    });
+
+    // Decimal-heavy multiply cases
+    it("0.33 * 3 = 0.99", () => {
+      expect(multiply(0.33, 3)).toEqual(0.99);
+    });
+    it("1.1 * 1.1 = 1.21", () => {
+      expect(multiply(1.1, 1.1)).toEqual(1.21);
+    });
+    it("19.99 * 2 = 39.98", () => {
+      expect(multiply(19.99, 2)).toEqual(39.98);
+    });
+    it("0.01 * 0.01 = 0.01", () => {
+      expect(multiply(0.01, 0.01)).toEqual(0.01);
+    });
+    it("9.99 * 1.1 = 10.99", () => {
+      expect(multiply(9.99, 1.1)).toEqual(10.99);
+    });
+
+    // Crypto precision multiply (8 decimals)
+    it("0.12345678 * 2 = 0.24691356 (8 decimals)", () => {
+      expect(multiply(0.12345678, 2, 8)).toEqual(0.24691356);
+    });
+    it("0.00000001 * 10 = 0.0000001 (8 decimals)", () => {
+      expect(multiply(0.00000001, 10, 8)).toEqual(0.0000001);
+    });
+    it("1.23456789 * 0.5 = 0.61728395 (8 decimals)", () => {
+      expect(multiply(1.23456789, 0.5, 8)).toEqual(0.61728395);
+    });
+    it("0.00000005 * 3 = 0.00000015 (8 decimals)", () => {
+      expect(multiply(0.00000005, 3, 8)).toEqual(0.00000015);
     });
   });
   describe("#divide", () => {
@@ -371,6 +614,37 @@ describe("#money", () => {
     });
     it("10 / 0 throws ArgumentError", () => {
       expect(() => divide(10, 0)).toThrow("cant divide by zero");
+    });
+
+    // Decimal-heavy divide cases
+    it("1 / 3 = 0.34", () => {
+      expect(divide(1, 3)).toEqual(0.34);
+    });
+    it("0.1 / 3 = 0.04", () => {
+      expect(divide(0.1, 3)).toEqual(0.04);
+    });
+    it("100 / 7 = 14.29", () => {
+      expect(divide(100, 7)).toEqual(14.29);
+    });
+    it("0.99 / 3 = 0.33", () => {
+      expect(divide(0.99, 3)).toEqual(0.33);
+    });
+    it("0.01 / 3 = 0.01", () => {
+      expect(divide(0.01, 3)).toEqual(0.01);
+    });
+
+    // Crypto precision divide (8 decimals)
+    it("1 / 3 = 0.33333334 (8 decimals)", () => {
+      expect(divide(1, 3, 8)).toEqual(0.33333334);
+    });
+    it("0.12345678 / 2 = 0.06172839 (8 decimals)", () => {
+      expect(divide(0.12345678, 2, 8)).toEqual(0.06172839);
+    });
+    it("0.00000010 / 10 = 0.00000001 (8 decimals)", () => {
+      expect(divide(0.0000001, 10, 8)).toEqual(0.00000001);
+    });
+    it("1 / 7 = 0.14285715 (8 decimals)", () => {
+      expect(divide(1, 7, 8)).toEqual(0.14285715);
     });
   });
 
@@ -601,10 +875,32 @@ describe("#money", () => {
       it("11 apply discount 8.2% is 10.10", () => {
         expect(applyDiscount(11, 8.2)).toEqual(10.1);
       });
+
+      // Decimal-heavy discount
+      it("49.99 apply discount 15% is 42.5", () => {
+        expect(applyDiscount(49.99, 15)).toEqual(42.5);
+      });
+      it("0.99 apply discount 50% is 0.5", () => {
+        expect(applyDiscount(0.99, 50)).toEqual(0.5);
+      });
+      it("19.99 apply discount 10% is 18", () => {
+        expect(applyDiscount(19.99, 10)).toEqual(18);
+      });
     });
     describe("#appyTax", () => {
       it("100 apply maxTax 10% is 110 ", () => {
         expect(applyTax(100, 10)).toEqual(110);
+      });
+
+      // Decimal-heavy tax
+      it("49.99 apply tax 21% is 60.49", () => {
+        expect(applyTax(49.99, 21)).toEqual(60.49);
+      });
+      it("0.01 apply tax 10% is 0.02", () => {
+        expect(applyTax(0.01, 10)).toEqual(0.02);
+      });
+      it("19.99 apply tax 7.5% is 21.49", () => {
+        expect(applyTax(19.99, 7.5)).toEqual(21.49);
       });
     });
     describe("#applyMaxTax", () => {
@@ -645,6 +941,37 @@ describe("#money", () => {
       });
       it("-1 vs 0 returns -1", () => {
         expect(compare(-1, 0)).toEqual(-1);
+      });
+
+      // Decimal-heavy compare
+      it("0.1 + 0.2 precision: compare(0.30, 0.3) = 0", () => {
+        expect(compare(0.3, 0.3)).toEqual(0);
+      });
+      it("19.99 vs 20 returns -1", () => {
+        expect(compare(19.99, 20)).toEqual(-1);
+      });
+      it("0.005 vs 0.004 both round to 0.01, returns 0", () => {
+        expect(compare(0.005, 0.004)).toEqual(0);
+      });
+      it("0.015 vs 0.014 both round to 0.02, returns 0", () => {
+        expect(compare(0.015, 0.014)).toEqual(0);
+      });
+
+      // Crypto precision compare (8 decimals)
+      it("0.12345678 vs 0.12345679 = -1 (8 decimals)", () => {
+        expect(compare(0.12345678, 0.12345679, 8)).toEqual(-1);
+      });
+      it("0.12345679 vs 0.12345678 = 1 (8 decimals)", () => {
+        expect(compare(0.12345679, 0.12345678, 8)).toEqual(1);
+      });
+      it("0.12345678 vs 0.12345678 = 0 (8 decimals)", () => {
+        expect(compare(0.12345678, 0.12345678, 8)).toEqual(0);
+      });
+      it("0.00000001 vs 0.00000002 = -1 (8 decimals)", () => {
+        expect(compare(0.00000001, 0.00000002, 8)).toEqual(-1);
+      });
+      it("at 2 decimals 0.12345678 vs 0.12345679 both round to 0.13, returns 0", () => {
+        expect(compare(0.12345678, 0.12345679)).toEqual(0);
       });
     });
 
@@ -709,6 +1036,20 @@ describe("#money", () => {
       it('"0" is zero', () => {
         expect(isZero("0")).toEqual(true);
       });
+
+      // Crypto precision isZero (8 decimals)
+      it("0.000000001 is not zero at 8 decimals (rounds up)", () => {
+        expect(isZero(0.000000001, 8)).toEqual(false);
+      });
+      it("0 is zero at 8 decimals", () => {
+        expect(isZero(0, 8)).toEqual(true);
+      });
+      it("0.00000001 is not zero at 8 decimals", () => {
+        expect(isZero(0.00000001, 8)).toEqual(false);
+      });
+      it("0.004 is zero at 2 decimals (rounds to 0.01 → not zero)", () => {
+        expect(isZero(0.004)).toEqual(false);
+      });
     });
 
     describe("#isPositive", () => {
@@ -730,6 +1071,17 @@ describe("#money", () => {
       it("-0.001 rounds to -0.01, is not positive", () => {
         expect(isPositive(-0.001)).toEqual(false);
       });
+
+      // Crypto precision isPositive (8 decimals)
+      it("0.00000001 is positive at 8 decimals", () => {
+        expect(isPositive(0.00000001, 8)).toEqual(true);
+      });
+      it("-0.00000001 is not positive at 8 decimals", () => {
+        expect(isPositive(-0.00000001, 8)).toEqual(false);
+      });
+      it("0 is not positive at 8 decimals", () => {
+        expect(isPositive(0, 8)).toEqual(false);
+      });
     });
 
     describe("#isNegative", () => {
@@ -750,6 +1102,17 @@ describe("#money", () => {
       });
       it("0.001 rounds to 0.01, not negative", () => {
         expect(isNegative(0.001)).toEqual(false);
+      });
+
+      // Crypto precision isNegative (8 decimals)
+      it("-0.00000001 is negative at 8 decimals", () => {
+        expect(isNegative(-0.00000001, 8)).toEqual(true);
+      });
+      it("0.00000001 is not negative at 8 decimals", () => {
+        expect(isNegative(0.00000001, 8)).toEqual(false);
+      });
+      it("0 is not negative at 8 decimals", () => {
+        expect(isNegative(0, 8)).toEqual(false);
       });
     });
 
@@ -821,6 +1184,25 @@ describe("#money", () => {
       it("abs(-1.2345, 4) is 1.2345", () => {
         expect(abs(-1.2345, 4)).toEqual(1.2345);
       });
+
+      // Decimal-heavy abs
+      it("abs(-0.005) is 0.01", () => {
+        expect(abs(-0.005)).toEqual(0.01);
+      });
+      it("abs(-19.99) is 19.99", () => {
+        expect(abs(-19.99)).toEqual(19.99);
+      });
+
+      // Crypto precision abs (8 decimals)
+      it("abs(-0.12345678, 8) is 0.12345678", () => {
+        expect(abs(-0.12345678, 8)).toEqual(0.12345678);
+      });
+      it("abs(-0.00000001, 8) is 0.00000001", () => {
+        expect(abs(-0.00000001, 8)).toEqual(0.00000001);
+      });
+      it("abs(0.99999999, 8) is 0.99999999", () => {
+        expect(abs(0.99999999, 8)).toEqual(0.99999999);
+      });
     });
 
     describe("#min", () => {
@@ -845,6 +1227,29 @@ describe("#money", () => {
       it("min('10', '3', '7') is 3", () => {
         expect(min("10", "3", "7")).toEqual(3);
       });
+
+      // Decimal-heavy min
+      it("min(0.33, 0.34, 0.32) is 0.32", () => {
+        expect(min(0.33, 0.34, 0.32)).toEqual(0.32);
+      });
+      it("min(19.99, 20, 19.98) is 19.98", () => {
+        expect(min(19.99, 20, 19.98)).toEqual(19.98);
+      });
+
+      // Crypto precision min (8 decimals)
+      it("min(0.12345678, 0.12345679, {decimals:8}) is 0.12345678", () => {
+        expect(min(0.12345678, 0.12345679, { decimals: 8 })).toEqual(
+          0.12345678,
+        );
+      });
+      it("min([0.00000001, 0.00000002, 0.00000003], {decimals:8}) is 0.00000001", () => {
+        expect(
+          min([0.00000001, 0.00000002, 0.00000003], { decimals: 8 }),
+        ).toEqual(0.00000001);
+      });
+      it("min(0.12345678, 0.12345679) at 2 decimals both round to 0.13", () => {
+        expect(min(0.12345678, 0.12345679)).toEqual(0.13);
+      });
     });
 
     describe("#max", () => {
@@ -866,6 +1271,26 @@ describe("#money", () => {
       it("max(5) is 5", () => {
         expect(max(5)).toEqual(5);
       });
+
+      // Decimal-heavy max
+      it("max(0.33, 0.34, 0.32) is 0.34", () => {
+        expect(max(0.33, 0.34, 0.32)).toEqual(0.34);
+      });
+      it("max(19.99, 20, 19.98) is 20", () => {
+        expect(max(19.99, 20, 19.98)).toEqual(20);
+      });
+
+      // Crypto precision max (8 decimals)
+      it("max(0.12345678, 0.12345679, {decimals:8}) is 0.12345679", () => {
+        expect(max(0.12345678, 0.12345679, { decimals: 8 })).toEqual(
+          0.12345679,
+        );
+      });
+      it("max([0.00000001, 0.00000002, 0.00000003], {decimals:8}) is 0.00000003", () => {
+        expect(
+          max([0.00000001, 0.00000002, 0.00000003], { decimals: 8 }),
+        ).toEqual(0.00000003);
+      });
     });
 
     describe("#equal", () => {
@@ -884,6 +1309,28 @@ describe("#money", () => {
       it("NaN does not equal NaN", () => {
         expect(equal(NaN, NaN)).toEqual(false);
       });
+
+      // Decimal-heavy equal
+      it("0.1 + 0.2 and 0.3 are equal", () => {
+        expect(equal(0.3, 0.3)).toEqual(true);
+      });
+      it("0.005 and 0.006 are equal at 2 decimals (both round to 0.01)", () => {
+        expect(equal(0.005, 0.006)).toEqual(true);
+      });
+      it("19.99 and 19.98 are not equal", () => {
+        expect(equal(19.99, 19.98)).toEqual(false);
+      });
+
+      // Crypto precision equal (8 decimals)
+      it("0.12345678 equals 0.12345678 (8 decimals)", () => {
+        expect(equal(0.12345678, 0.12345678, 8)).toEqual(true);
+      });
+      it("0.12345678 does not equal 0.12345679 (8 decimals)", () => {
+        expect(equal(0.12345678, 0.12345679, 8)).toEqual(false);
+      });
+      it("0.000000001 and 0.000000002 equal at 8 decimals (both round to 0.00000001)", () => {
+        expect(equal(0.000000001, 0.000000002, 8)).toEqual(true);
+      });
     });
 
     describe("#greaterThan", () => {
@@ -898,6 +1345,25 @@ describe("#money", () => {
       });
       it("NaN > 1 is false", () => {
         expect(greaterThan(NaN, 1)).toEqual(false);
+      });
+
+      // Decimal-heavy greaterThan
+      it("0.11 > 0.10 is true", () => {
+        expect(greaterThan(0.11, 0.1)).toEqual(true);
+      });
+      it("19.99 > 19.98 is true", () => {
+        expect(greaterThan(19.99, 19.98)).toEqual(true);
+      });
+
+      // Crypto precision greaterThan (8 decimals)
+      it("0.12345679 > 0.12345678 is true (8 decimals)", () => {
+        expect(greaterThan(0.12345679, 0.12345678, 8)).toEqual(true);
+      });
+      it("0.00000002 > 0.00000001 is true (8 decimals)", () => {
+        expect(greaterThan(0.00000002, 0.00000001, 8)).toEqual(true);
+      });
+      it("0.12345678 > 0.12345679 is false (8 decimals)", () => {
+        expect(greaterThan(0.12345678, 0.12345679, 8)).toEqual(false);
       });
     });
 
@@ -914,6 +1380,17 @@ describe("#money", () => {
       it("NaN >= 1 is false", () => {
         expect(greaterThanOrEqual(NaN, 1)).toEqual(false);
       });
+
+      // Crypto precision greaterThanOrEqual (8 decimals)
+      it("0.12345678 >= 0.12345678 is true (8 decimals)", () => {
+        expect(greaterThanOrEqual(0.12345678, 0.12345678, 8)).toEqual(true);
+      });
+      it("0.12345679 >= 0.12345678 is true (8 decimals)", () => {
+        expect(greaterThanOrEqual(0.12345679, 0.12345678, 8)).toEqual(true);
+      });
+      it("0.12345678 >= 0.12345679 is false (8 decimals)", () => {
+        expect(greaterThanOrEqual(0.12345678, 0.12345679, 8)).toEqual(false);
+      });
     });
 
     describe("#lessThan", () => {
@@ -929,6 +1406,25 @@ describe("#money", () => {
       it("NaN < 1 is false", () => {
         expect(lessThan(NaN, 1)).toEqual(false);
       });
+
+      // Decimal-heavy lessThan
+      it("0.10 < 0.11 is true", () => {
+        expect(lessThan(0.1, 0.11)).toEqual(true);
+      });
+      it("19.98 < 19.99 is true", () => {
+        expect(lessThan(19.98, 19.99)).toEqual(true);
+      });
+
+      // Crypto precision lessThan (8 decimals)
+      it("0.12345678 < 0.12345679 is true (8 decimals)", () => {
+        expect(lessThan(0.12345678, 0.12345679, 8)).toEqual(true);
+      });
+      it("0.00000001 < 0.00000002 is true (8 decimals)", () => {
+        expect(lessThan(0.00000001, 0.00000002, 8)).toEqual(true);
+      });
+      it("0.12345679 < 0.12345678 is false (8 decimals)", () => {
+        expect(lessThan(0.12345679, 0.12345678, 8)).toEqual(false);
+      });
     });
 
     describe("#lessThanOrEqual", () => {
@@ -943,6 +1439,17 @@ describe("#money", () => {
       });
       it("NaN <= 1 is false", () => {
         expect(lessThanOrEqual(NaN, 1)).toEqual(false);
+      });
+
+      // Crypto precision lessThanOrEqual (8 decimals)
+      it("0.12345678 <= 0.12345678 is true (8 decimals)", () => {
+        expect(lessThanOrEqual(0.12345678, 0.12345678, 8)).toEqual(true);
+      });
+      it("0.12345678 <= 0.12345679 is true (8 decimals)", () => {
+        expect(lessThanOrEqual(0.12345678, 0.12345679, 8)).toEqual(true);
+      });
+      it("0.12345679 <= 0.12345678 is false (8 decimals)", () => {
+        expect(lessThanOrEqual(0.12345679, 0.12345678, 8)).toEqual(false);
       });
     });
   });

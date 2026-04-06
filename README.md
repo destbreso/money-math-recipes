@@ -1,10 +1,18 @@
 # money-math-recipes
 
-Zero-dependency monetary arithmetic for JavaScript and TypeScript. Fixes the classic floating-point problem and guarantees proper cent rounding. Ships with CJS + ESM + TypeScript types out of the box.
+Zero-dependency monetary arithmetic for JavaScript and TypeScript. Fixes the classic floating-point problem with configurable decimal precision — from standard 2-decimal currencies to 8-decimal crypto (BTC satoshis). Ships with CJS + ESM + TypeScript types out of the box.
 
 ```js
 0.1 + 0.2           // 0.30000000000000004  ← JS native
 sum(0.1, 0.2)       // 0.3                  ← money-math-recipes
+```
+
+**Crypto-ready:** every function accepts a `decimals` parameter (default `2`) to work with any precision.
+
+```js
+add(0.12345678, 0.00000001, 8)   // 0.12345679  (8-decimal BTC math)
+value(1.23456789, 8)             // 1.23456789  (satoshi precision)
+compare(0.12345678, 0.12345679, 8)  // -1
 ```
 
 ---
@@ -67,6 +75,26 @@ const total: number = sum(19.99, 4.99);  // 24.98
 const cmp: -1 | 0 | 1 = compare(total, 25); // -1
 ```
 
+### Crypto / Configurable Precision
+
+Every arithmetic and comparison function accepts a `decimals` parameter (default `2`). Set it to `8` for BTC (satoshis), `6` for USDC micro-units, or any other value.
+
+```js
+import { value, add, subtract, sum, compare, isPositive, min, max } from 'money-math-recipes';
+
+// BTC arithmetic (8 decimals)
+value(0.123456789, 8)                     // 0.12345679
+add(0.12345678, 0.00000001, 8)            // 0.12345679
+subtract(1, 0.00000001, 8)                // 0.99999999
+sum(0.001, 0.002, 0.003, { decimals: 8 }) // 0.006
+compare(0.12345678, 0.12345679, 8)        // -1
+isPositive(0.00000001, 8)                 // true
+min(0.123, 0.124, { decimals: 8 })        // 0.123
+max(0.123, 0.124, { decimals: 8 })        // 0.124
+```
+
+> **Note:** For variadic functions (`sum`, `min`, `max`), pass `{ decimals }` as the last argument. For all other functions, `decimals` is a regular positional parameter.
+
 ---
 
 ## API
@@ -120,33 +148,43 @@ fx(100, 0.0000155235)     // 0.01
 fx(100, 0.0000155235, 4)  // 0.0016
 ```
 
-### `sum(...amounts)` / `sum(amounts[])`
+### `sum(...amounts)` / `sum(amounts[])` / `sum(...amounts, { decimals })`
 
-Aggregates any number of amounts. Accepts variadic arguments, spread arrays, or a single array.
+Aggregates any number of amounts. Accepts variadic arguments, spread arrays, or a single array. Pass `{ decimals }` as the last argument for custom precision.
 
 ```js
 sum(0.1, 0.2)               // 0.3
 sum(0.1, 0.2, '-0.3')       // 0
 sum([0.1, 0.2, -0.3])       // 0
 sum(...[0.1, 0.2, -0.3])    // 0
+
+// Crypto (8 decimals)
+sum(0.12345678, 0.00000001, { decimals: 8 })   // 0.12345679
+sum([0.001, 0.002, 0.003], { decimals: 8 })    // 0.006
 ```
 
-### `add(x, y)`
+### `add(x, y, decimals?)`
 
 Adds two amounts.
 
 ```js
 add(0.1, 0.2)   // 0.3
 add(9.99, 0.01) // 10
+
+// Crypto (8 decimals)
+add(0.12345678, 0.00000001, 8)  // 0.12345679
 ```
 
-### `subtract(x, y)`
+### `subtract(x, y, decimals?)`
 
 Subtracts `y` from `x`.
 
 ```js
 subtract(1.01, 0.99)  // 0.02
 subtract(0.3, 0.1)    // 0.2
+
+// Crypto (8 decimals)
+subtract(0.12345679, 0.00000001, 8)  // 0.12345678
 ```
 
 ### `multiply(amount, factor, decimals?)`
@@ -168,7 +206,7 @@ divide(10, 3)      // 3.34
 divide(10, 0)      // throws ArgumentError: cant divide by zero
 ```
 
-### `percent(amount, p)`
+### `percent(amount, p, decimals?)`
 
 Computes `p`% of `amount`.
 
@@ -176,6 +214,9 @@ Computes `p`% of `amount`.
 percent(100, 10)     // 10
 percent(524.25, 8.75) // 45.88
 percent(99.99, 50)   // 50
+
+// Crypto (8 decimals)
+percent(0.12345678, 10, 8)  // 0.01234568
 ```
 
 ### `compare(lh, rh, decimals?)`
@@ -188,6 +229,10 @@ compare(2, 1)      // 1
 compare(1, 1)      // 0
 compare(0.1, 0.10) // 0
 compare(NaN, 1)    // NaN
+
+// Crypto (8 decimals)
+compare(0.12345678, 0.12345679, 8)  // -1
+compare(0.12345678, 0.12345678, 8)  // 0
 ```
 
 > **Note:** values are rounded before comparison. `compare(0.001, 0.002)` → `0` because both round to `0.01`.
@@ -206,27 +251,37 @@ isValid([])        // false
 isValid(true)      // false
 ```
 
-### `isZero(amount)`
+### `isZero(amount, decimals?)`
 
 ```js
 isZero(0)     // true
 isZero(0.001) // false  (rounds up to 0.01)
+
+// Crypto (8 decimals)
+isZero(0.00000001, 8) // false (1 satoshi is not zero)
+isZero(0, 8)          // true
 ```
 
-### `isPositive(amount)`
+### `isPositive(amount, decimals?)`
 
 ```js
 isPositive(1)   // true
 isPositive(0)   // false
 isPositive(-1)  // false
+
+// Crypto (8 decimals)
+isPositive(0.00000001, 8)  // true
 ```
 
-### `isNegative(amount)`
+### `isNegative(amount, decimals?)`
 
 ```js
 isNegative(-1)  // true
 isNegative(0)   // false
 isNegative(1)   // false
+
+// Crypto (8 decimals)
+isNegative(-0.00000001, 8)  // true
 ```
 
 ### `abs(amount, decimals?)`
@@ -239,7 +294,7 @@ abs(10.50)   // 10.50
 abs('-3.14') // 3.14
 ```
 
-### `min(...amounts)` / `min(amounts[])`
+### `min(...amounts)` / `min(amounts[])` / `min(...amounts, { decimals })`
 
 Returns the smallest value from the given amounts.
 
@@ -247,9 +302,12 @@ Returns the smallest value from the given amounts.
 min(3, 1, 2)         // 1
 min([10.5, 3.2, 7])  // 3.2
 min(-1, -5, 0)       // -5
+
+// Crypto (8 decimals)
+min(0.12345678, 0.12345679, { decimals: 8 })  // 0.12345678
 ```
 
-### `max(...amounts)` / `max(amounts[])`
+### `max(...amounts)` / `max(amounts[])` / `max(...amounts, { decimals })`
 
 Returns the largest value from the given amounts.
 
@@ -257,6 +315,9 @@ Returns the largest value from the given amounts.
 max(3, 1, 2)         // 3
 max([10.5, 3.2, 7])  // 10.5
 max(-1, -5, 0)       // 0
+
+// Crypto (8 decimals)
+max(0.12345678, 0.12345679, { decimals: 8 })  // 0.12345679
 ```
 
 ### `equal(lh, rh, decimals?)`
@@ -437,13 +498,20 @@ Run them yourself: `node bench/bench.js`
 
 | Operation               | money-math-recipes |   currency.js | decimal.js | dinero.js v2 |
 |-------------------------|-------------------:|--------------:|-----------:|-------------:|
-| `add(0.1, 0.2)`         |      **2,073,173** |     1,181,962 |  1,014,720 |  3,002,325 ¹ |
-| `subtract(1.01, 0.99)`  |      **3,226,881** |     1,515,753 |  1,497,059 |  4,767,029 ¹ |
-| `multiply(165, 1.40)`   |      **4,135,555** |     1,946,167 |  2,561,339 |  7,835,476 ¹ |
-| `value()` rounding      |          3,361,044 | **4,358,140** |  1,862,179 |            — |
-| `partition(1, 3)`       |      **1,279,959** |       639,595 |          — |  1,165,500 ¹ |
-| `sum([10 items])`       |        **596,720** |       137,816 |    287,954 |            — |
-| `percent(524.25, 8.75)` |      **1,522,576** |       916,784 |    944,234 |            — |
+| `add(0.1, 0.2)`         |      **2,250,335** |     1,498,950 |  1,646,491 |  3,536,595 ¹ |
+| `subtract(1.01, 0.99)`  |      **3,153,802** |     1,609,369 |  1,351,347 |  4,152,963 ¹ |
+| `multiply(165, 1.40)`   |      **3,728,548** |     1,931,203 |  2,630,027 |  8,345,742 ¹ |
+| `value()` rounding      |          3,337,585 | **4,626,968** |  2,044,684 |            — |
+| `partition(1, 3)`       |      **1,273,354** |       660,646 |          — |  1,331,005 ¹ |
+| `sum([10 items])`       |        **530,404** |       142,896 |    332,133 |            — |
+| `percent(524.25, 8.75)` |      **2,427,743** |       582,216 |    639,355 |            — |
+
+### Crypto precision (8 decimals, ops/sec)
+
+| Operation              | money-math-recipes | currency.js | decimal.js | dinero.js v2 |
+|------------------------|-------------------:|------------:|-----------:|-------------:|
+| `add` (8 decimals)     |      **2,556,626** |   1,170,208 |  1,144,156 |  5,433,023 ¹ |
+| `compare` (8 decimals) |      **1,662,050** |   1,794,539 |  2,955,653 |            — |
 
 > ¹ dinero.js v2 operates on integer cents internally (amounts pre-multiplied ×100), which skips the float-to-cents conversion step. It requires a verbose setup (`dinero({ amount: 10, currency: USD })`) for every value — not a drop-in replacement.
 
@@ -474,6 +542,7 @@ Run them yourself: `node bench/bench.js`
 | FX rate conversion                                         |         ✅          |      ✅      |      ✅       |     ❌      |
 | Currency formatting / symbols                              |         ❌          |      ✅      |      ✅       |     ❌      |
 | Arbitrary precision (beyond 2 decimals)                    |  ✅ (configurable)  |      ✅      |      ✅       |     ✅      |
+| Crypto-ready (BTC satoshis, 8+ decimals)                   |         ✅          |      ✅      |      ✅       |     ✅      |
 | Multi-currency arithmetic                                  |         ❌          |      ❌      |      ✅       |     ❌      |
 | Internationalisation (i18n)                                |         ❌          |      ✅      |      ✅       |     ❌      |
 
@@ -482,6 +551,7 @@ Run them yourself: `node bench/bench.js`
 | Use case                                            | Recommended              |
 |-----------------------------------------------------|--------------------------|
 | Monetary arithmetic — clean, fast, zero boilerplate | ✅ **money-math-recipes** |
+| Crypto arithmetic (BTC, ETH, configurable decimals) | ✅ **money-math-recipes** |
 | Need currency formatting (`$1,234.56`)              | currency.js or dinero.js |
 | Multi-currency ledger with exchange conversion      | dinero.js v2             |
 | Scientific / arbitrary-precision decimals           | decimal.js               |

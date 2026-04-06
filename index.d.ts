@@ -37,20 +37,35 @@ export declare function fx(
 
 /**
  * Adds monetary amounts safely. Accepts spread args or a single array.
+ * Pass `{ decimals }` as the last argument for custom precision.
  */
-export declare function sum(amounts: Array<number | string>): number;
-export declare function sum(...amounts: Array<number | string>): number;
+export declare function sum(
+  amounts: Array<number | string>,
+  options?: { decimals?: number },
+): number;
+export declare function sum(
+  ...amounts: Array<number | string | { decimals?: number }>
+): number;
 
 /** Computes `p`% of `amount`. */
-export declare function percent(amount: number | string, p: number): number;
+export declare function percent(
+  amount: number | string,
+  p: number,
+  decimals?: number,
+): number;
 
 /** Adds two monetary amounts. */
-export declare function add(x: number | string, y: number | string): number;
+export declare function add(
+  x: number | string,
+  y: number | string,
+  decimals?: number,
+): number;
 
 /** Subtracts `y` from `x`. */
 export declare function subtract(
   x: number | string,
   y: number | string,
+  decimals?: number,
 ): number;
 
 /** Multiplies `amount` by `factor`. */
@@ -86,24 +101,43 @@ export declare function compare(
 export declare function isValid(amount: unknown): boolean;
 
 /** Returns true if the monetary value of `amount` rounds to exactly 0. */
-export declare function isZero(amount: number | string): boolean;
+export declare function isZero(
+  amount: number | string,
+  decimals?: number,
+): boolean;
 
 /** Returns true if the monetary value of `amount` is greater than 0. */
-export declare function isPositive(amount: number | string): boolean;
+export declare function isPositive(
+  amount: number | string,
+  decimals?: number,
+): boolean;
 
 /** Returns true if the monetary value of `amount` is less than 0. */
-export declare function isNegative(amount: number | string): boolean;
+export declare function isNegative(
+  amount: number | string,
+  decimals?: number,
+): boolean;
 
 /** Returns the absolute (non-negative) monetary value of `amount`. */
 export declare function abs(amount: number | string, decimals?: number): number;
 
 /** Returns the smallest monetary value from a list of amounts. Returns NaN if any value is invalid. */
-export declare function min(...amounts: Array<number | string>): number;
-export declare function min(amounts: Array<number | string>): number;
+export declare function min(
+  ...amounts: Array<number | string | { decimals?: number }>
+): number;
+export declare function min(
+  amounts: Array<number | string>,
+  options?: { decimals?: number },
+): number;
 
 /** Returns the largest monetary value from a list of amounts. Returns NaN if any value is invalid. */
-export declare function max(...amounts: Array<number | string>): number;
-export declare function max(amounts: Array<number | string>): number;
+export declare function max(
+  ...amounts: Array<number | string | { decimals?: number }>
+): number;
+export declare function max(
+  amounts: Array<number | string>,
+  options?: { decimals?: number },
+): number;
 
 /** Returns true if two monetary amounts are equal after rounding. */
 export declare function equal(
