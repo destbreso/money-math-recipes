@@ -1,12 +1,18 @@
 {
   "name": "money-math-recipes",
-  "version": "3.0.0",
+  "version": "2.1.0",
   "description": "Zero-dependency monetary arithmetic for JS and TS. Solves floating-point rounding. ESM + CJS. Recipes for tax, discount and partition operations.",
   "author": "destbreso <destevezbreso@gmail.com>",
   "license": "MIT",
   "main": "index.js",
   "module": "index.mjs",
   "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.mjs",
+    "index.d.ts",
+    "lib/"
+  ],
   "packageManager": "pnpm@9.1.0",
   "exports": {
     ".": {
