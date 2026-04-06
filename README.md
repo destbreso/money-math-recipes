@@ -1,6 +1,6 @@
 # money-math-recipes
 
-Zero-dependency monetary arithmetic for JavaScript and TypeScript. Fixes the classic floating-point problem with configurable decimal precision — from standard 2-decimal currencies to 8-decimal crypto (BTC satoshis). Ships with CJS + ESM + TypeScript types out of the box.
+Tyni, Zero-dependency monetary arithmetic for JavaScript and TypeScript. Fixes the classic floating-point problem with configurable decimal precision — from standard 2-decimal currencies to 8-decimal crypto (BTC satoshis). Ships with CJS + ESM + TypeScript types out of the box.
 
 ```js
 0.1 + 0.2           // 0.30000000000000004  ← JS native
