@@ -1,5 +1,5 @@
 {
-  "name": "abako",
+  "name": "abakojs",
   "version": "2.1.0",
   "description": "Zero-dependency monetary arithmetic for JS & TS. Precise rounding, fees, discounts, partition, formatting & crypto support. ESM + CJS.",
   "author": "destbreso <destevezbreso@gmail.com>",
@@ -20,7 +20,7 @@
       "require": "./index.js"
     }
   },
-  "repository": "https://github.com/destbreso/abako.git",
+  "repository": "https://github.com/destbreso/abakojs.git",
   "directories": {
     "test": "tests"
   },
