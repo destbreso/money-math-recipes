@@ -1,17 +1,27 @@
 {
   "name": "money-math-recipes",
-  "version": "2.0.4",
-  "description": "A simple and tiny library with no dependencies for monetary operations and recipes",
+  "version": "3.0.0",
+  "description": "Zero-dependency monetary arithmetic for JS and TS. Solves floating-point rounding. ESM + CJS. Recipes for tax, discount and partition operations.",
   "author": "destbreso <destevezbreso@gmail.com>",
   "license": "MIT",
   "main": "index.js",
+  "module": "index.mjs",
+  "types": "index.d.ts",
+  "packageManager": "pnpm@9.1.0",
+  "exports": {
+    ".": {
+      "import": "./index.mjs",
+      "require": "./index.js"
+    }
+  },
   "repository": "https://github.com/destbreso/money-math-recipes.git",
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "test": "nyc mocha --reporter=spec --require @babel/register 'tests/*.js'",
-    "cobertura": "npx nyc --reporter cobertura mocha tests/*.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "doc-api": "jsdoc2md index.js > doc/API.md",
     "bench": "node bench/bench.js"
   },
@@ -22,15 +32,11 @@
     "rounding"
   ],
   "devDependencies": {
-    "@babel/core": "^7.12.3",
-    "@babel/register": "^7.12.1",
     "@semantic-release/release-notes-generator": "^9.0.3",
-    "chai": "^4.2.0",
     "eslint": "^7.27.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.23.4",
-    "jsdoc-to-markdown": "^7.0.1",
-    "mocha": "^8.2.1",
-    "nyc": "^15.1.0"
+    "jest": "^29.7.0",
+    "jsdoc-to-markdown": "^7.0.1"
   }
 }

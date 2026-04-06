@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 const arithmetic = require('./lib/arithmetic');
+const { ArgumentError } = require('./lib/errors');
 const {
   partition,
   applyDiscount,
@@ -7,6 +8,8 @@ const {
   applySumTax,
   applyTax,
   maxTax,
+  applyMaxDiscount,
+  applySumDiscount,
 } = require('./lib/recipes');
 
 /**
@@ -83,7 +86,7 @@ const fx = (amount, fxRate, decimals = 2) => arithmetic.fx(amount, fxRate, decim
 /**
    * Aggregate amounts
    * @public
-   * @param {(...Number|...String|Number[]|String[])} amounts numeric values
+   * @param {(number | string | number[] | string[])} amounts numeric values
    * @returns {Number} Monetary value of total amount
    * @example
    *
@@ -129,7 +132,7 @@ const subtract = (x, y) => arithmetic.sum(x, -y);
  *
  * @example
  *
- * add(0.1, 0.2) // 0.03
+ * add(0.1, 0.2) // 0.3
  */
 
 const add = (x, y) => arithmetic.sum(x, y);
@@ -172,6 +175,80 @@ const multiply = (amount, factor = 1, decimals = 2) => arithmetic.multiply(amoun
   * divide(null|undefined|any[]|object , 1) // NaN
   */
 const divide = (amount, divisor = 1, decimals = 2) => arithmetic.divide(amount, divisor, decimals);
+
+/**
+ * Compare two monetary amounts
+ * @public
+ * @param {(Number|String)} lh left-hand amount
+ * @param {(Number|String)} rh right-hand amount
+ * @param {Number} [decimals] integer
+ * @returns {-1|0|1} -1 if lh < rh, 0 if equal, 1 if lh > rh
+ *
+ * @example
+ * compare(1, 2)    // -1
+ * compare(2, 1)    // 1
+ * compare(1, 1)    // 0
+ * compare(NaN, 1)  // NaN
+ */
+const compare = (lh, rh, decimals = 2) => arithmetic.compare(lh, rh, decimals);
+
+/**
+ * Check if a value is a valid numeric monetary amount
+ * @public
+ * @param {*} amount any value
+ * @returns {boolean}
+ *
+ * @example
+ * isValid(1)         // true
+ * isValid('10.5')    // true
+ * isValid(0)         // true
+ * isValid(NaN)       // false
+ * isValid(null)      // false
+ * isValid(undefined) // false
+ * isValid('abc')     // false
+ * isValid([])        // false
+ * isValid({})        // false
+ */
+const isValid = (amount) => arithmetic.isValid(amount);
+
+/**
+ * Check if monetary value rounds to exactly 0
+ * @public
+ * @param {(Number|String)} amount numeric value
+ * @returns {boolean}
+ *
+ * @example
+ * isZero(0)     // true
+ * isZero(1)     // false
+ * isZero(0.001) // false (rounds up to 0.01)
+ */
+const isZero = (amount) => arithmetic.isZero(amount);
+
+/**
+ * Check if monetary value is greater than 0
+ * @public
+ * @param {(Number|String)} amount numeric value
+ * @returns {boolean}
+ *
+ * @example
+ * isPositive(1)  // true
+ * isPositive(0)  // false
+ * isPositive(-1) // false
+ */
+const isPositive = (amount) => arithmetic.isPositive(amount);
+
+/**
+ * Check if monetary value is less than 0
+ * @public
+ * @param {(Number|String)} amount numeric value
+ * @returns {boolean}
+ *
+ * @example
+ * isNegative(-1) // true
+ * isNegative(0)  // false
+ * isNegative(1)  // false
+ */
+const isNegative = (amount) => arithmetic.isNegative(amount);
 
 /**
  * @summary Recipes
@@ -249,6 +326,32 @@ const recipes = {
  * @returns {Number}
  */
   applySumTax: (amount, p, fee) => applySumTax(amount, p, fee),
+  /**
+ * Apply discount using max policy (larger of: p% of amount vs fixed fee)
+ *
+ * @param {(Number|String)} amount numeric value
+ * @param {Number} p percent value
+ * @param {Number} fee fixed fee
+ * @returns {Number}
+ *
+ * @example
+ * applyMaxDiscount(100, 10, 20) // 80
+ * applyMaxDiscount(100, 25, 20) // 75
+ */
+  applyMaxDiscount: (amount, p, fee) => applyMaxDiscount(amount, p, fee),
+  /**
+ * Apply discount using sum policy (percent discount then subtract fixed fee)
+ *
+ * @param {(Number|String)} amount numeric value
+ * @param {Number} p percent value
+ * @param {Number} fee fixed fee
+ * @returns {Number}
+ *
+ * @example
+ * applySumDiscount(100, 10, 20) // 70
+ * applySumDiscount(100, 0, 10)  // 90
+ */
+  applySumDiscount: (amount, p, fee) => applySumDiscount(amount, p, fee),
 };
 
 module.exports = {
@@ -262,7 +365,12 @@ module.exports = {
   subtract,
   multiply,
   divide,
+  compare,
+  isValid,
+  isZero,
+  isPositive,
+  isNegative,
+  ArgumentError,
   recipes,
-  // TODO: DEPRECATE THIS
   ...recipes,
 };

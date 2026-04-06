@@ -2,7 +2,8 @@
     "env": {
         "commonjs": true,
         "es6": true,
-        "node": true
+        "node": true,
+        "jest": true
     },
     "extends": "airbnb-base",
     "globals": {
@@ -10,8 +11,11 @@
         "SharedArrayBuffer": "readonly"
     },
     "parserOptions": {
-        "ecmaVersion": 2018
+        "ecmaVersion": 2020
     },
     "rules": {
+        "quotes": "off",
+        "strict": "off",
+        "no-unused-vars": ["error", { "varsIgnorePattern": "^_" }]
     }
 }
