@@ -37,6 +37,7 @@ export const {
   addFees,
   deductMaxFee,
   deductFees,
+  split,
   partition,
   // deprecated (backward compat)
   maxTax,

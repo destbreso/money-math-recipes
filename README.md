@@ -81,10 +81,10 @@ TypeScript types and ESM/CJS builds are included — no `@types` package needed.
 
 ```js
 // CommonJS
-const { sum, value, percent, addPercent, deductPercent, partition } = require('abakojs');
+const { sum, value, percent, addPercent, deductPercent, split } = require('abakojs');
 
 // ESM / TypeScript
-import { sum, value, percent, addPercent, deductPercent, partition } from 'abakojs';
+import { sum, value, percent, addPercent, deductPercent, split } from 'abakojs';
 ```
 
 ```js
@@ -93,7 +93,7 @@ sum(19.99, 4.99, 0.50)   // 25.48
 percent(200, 8.5)        // 17
 addPercent(100, 21)      // 121  (add 21% VAT)
 deductPercent(100, 10)   // 90   (10% discount)
-partition(100, 3)        // [33.34, 33.33, 33.33]  ← exact, no cent lost
+split(100, 3)            // [33.34, 33.33, 33.33]  ← exact, no cent lost
 ```
 
 **Strings work everywhere** — numbers, strings, and mixed inputs are all accepted:
@@ -153,11 +153,11 @@ deductFees(80, 15, 2)       // 66
 ### Split a bill without losing cents
 
 ```js
-import { partition } from 'abakojs';
+import { split } from 'abakojs';
 
-partition(100, 3)                     // [33.34, 33.33, 33.33]
-partition(100, [50, 30, 20])          // [50, 30, 20]
-partition(0.01, [50, 30, 20])         // [0.01, 0, 0]  ← remainder goes to first
+split(100, 3)                     // [33.34, 33.33, 33.33]
+split(100, [50, 30, 20])          // [50, 30, 20]
+split(0.01, [50, 30, 20])         // [0.01, 0, 0]  ← remainder goes to first
 ```
 
 ### Currency formatting
@@ -540,34 +540,36 @@ Throws `ArgumentError` if a currency code is missing from the rates object or if
 
 Higher-level operations available as `recipes.*` and as direct named exports.
 
-### `partition(amount, parts)`
+### `split(amount, parts)`
 
 Splits an amount into equal or weighted parts, guaranteeing the total is always exact — no cent is lost or duplicated.
 
 **Equal parts:**
 
 ```js
-partition(1, 3)    // [0.34, 0.33, 0.33]
-partition(1, 6)    // [0.17, 0.17, 0.17, 0.17, 0.16, 0.16]
-partition(0.01, 5) // [0.01, 0, 0, 0, 0]
+split(1, 3)    // [0.34, 0.33, 0.33]
+split(1, 6)    // [0.17, 0.17, 0.17, 0.17, 0.16, 0.16]
+split(0.01, 5) // [0.01, 0, 0, 0, 0]
 ```
 
 **Weighted parts (array must sum to 100):**
 
 ```js
-partition(100, [50, 50])           // [50, 50]
-partition(100, [41, 33, 15, 9, 2]) // [41, 33, 15, 9, 2]
-partition(10, [41, 33, 15, 9, 2])  // [4.1, 3.3, 1.5, 0.9, 0.2]
+split(100, [50, 50])           // [50, 50]
+split(100, [41, 33, 15, 9, 2]) // [41, 33, 15, 9, 2]
+split(10, [41, 33, 15, 9, 2])  // [4.1, 3.3, 1.5, 0.9, 0.2]
 ```
 
 Spread and rest params also work:
 
 ```js
-partition(100, ...[50, 50]) // [50, 50]
-partition(100, 50, 50)      // [50, 50]
+split(100, ...[50, 50]) // [50, 50]
+split(100, 50, 50)      // [50, 50]
 ```
 
 Throws `ArgumentError` if parts don't sum to 100 or argument is invalid.
+
+> `partition` is still available as an alias and will be deprecated in a future major version.
 
 ### `addPercent(amount, p)`
 

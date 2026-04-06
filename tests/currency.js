@@ -848,6 +848,41 @@ describe("#money", () => {
         );
       });
     });
+    describe("#split (alias of partition)", () => {
+      it("1 in default parts is [1.00]", () => {
+        expect(recipes.split(1)).toEqual([1.0]);
+      });
+      it("1 in 2 parts is [0.5, 0.5]", () => {
+        expect(recipes.split(1, 2)).toEqual([0.5, 0.5]);
+      });
+      it("1 in 3 parts is [0.34, 0.33, 0.33]", () => {
+        expect(recipes.split(1, 3)).toEqual([0.34, 0.33, 0.33]);
+      });
+      it("0.01 in 5 parts is [0.01,0,0,0,0]", () => {
+        expect(recipes.split(0.01, 5)).toEqual([0.01, 0, 0, 0, 0]);
+      });
+      it("1 as [50%,50%] is [0.5,0.5]", () => {
+        expect(recipes.split(1, [50, 50])).toEqual([0.5, 0.5]);
+      });
+      it("100 as [41%,33%,15%,9%,2%] is [41,33,15,9,2]", () => {
+        expect(recipes.split(100, [41, 33, 15, 9, 2])).toEqual([41, 33, 15, 9, 2]);
+      });
+      it("100 as ...[50%,50%] is [50,50]", () => {
+        expect(recipes.split(100, ...[50, 50])).toEqual([50, 50]);
+      });
+      it("100 as ,50,50 is [50,50]", () => {
+        expect(recipes.split(100, 50, 50)).toEqual([50, 50]);
+      });
+      it("top-level split is the same as recipes.split", () => {
+        const { split } = require("../index.js");
+        expect(split(1, 2)).toEqual(recipes.split(1, 2));
+      });
+      it("100 in 0 parts throws an ArgumentError", () => {
+        expect(() => recipes.split(100, 0)).toThrow(
+          "partsArg must be a positive integer or an array with a partition of 100",
+        );
+      });
+    });
     describe("#maxTax", () => {
       it("100 maxTax 0% or 0.01 is 0.01 ", () => {
         expect(maxTax(100, 0, 0.01)).toEqual(0.01);

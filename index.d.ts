@@ -298,19 +298,35 @@ export declare function applySumDiscount(
  * Remainder cents are distributed to the first parts so the total is always exact.
  * @throws {ArgumentError} if parts are invalid or percentages don't sum to 100
  */
+export declare function split(amount: number | string, parts: number): number[];
+export declare function split(
+  amount: number | string,
+  percentParts: number[],
+): number[];
+export declare function split(
+  amount: number | string,
+  first: number,
+  ...rest: number[]
+): number[];
+export declare function split(amount: number | string): number[];
+
+/** @deprecated Use `split` instead. */
 export declare function partition(
   amount: number | string,
   parts: number,
 ): number[];
+/** @deprecated Use `split` instead. */
 export declare function partition(
   amount: number | string,
   percentParts: number[],
 ): number[];
+/** @deprecated Use `split` instead. */
 export declare function partition(
   amount: number | string,
   first: number,
   ...rest: number[]
 ): number[];
+/** @deprecated Use `split` instead. */
 export declare function partition(amount: number | string): number[];
 
 // ─── Recipes namespace ───────────────────────────────────────────────────────
@@ -362,14 +378,27 @@ export declare namespace recipes {
     p: number,
     fee: number,
   ): number;
-  // ─ Partition ─
+  // ─ Split ─
+  function split(amount: number | string, parts: number): number[];
+  function split(amount: number | string, percentParts: number[]): number[];
+  function split(
+    amount: number | string,
+    first: number,
+    ...rest: number[]
+  ): number[];
+  function split(amount: number | string): number[];
+  // ─ Deprecated ─
+  /** @deprecated Use `split` instead. */
   function partition(amount: number | string, parts: number): number[];
+  /** @deprecated Use `split` instead. */
   function partition(amount: number | string, percentParts: number[]): number[];
+  /** @deprecated Use `split` instead. */
   function partition(
     amount: number | string,
     first: number,
     ...rest: number[]
   ): number[];
+  /** @deprecated Use `split` instead. */
   function partition(amount: number | string): number[];
 }
 
@@ -411,6 +440,7 @@ declare const money: {
   addFees: typeof addFees;
   deductMaxFee: typeof deductMaxFee;
   deductFees: typeof deductFees;
+  split: typeof split;
   // Deprecated names
   maxTax: typeof maxTax;
   applyDiscount: typeof applyDiscount;

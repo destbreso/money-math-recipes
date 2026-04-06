@@ -420,28 +420,26 @@ const convert = (amount, from, to, rates, decimals) =>
  */
 const recipes = {
   /**
-   * Compute an amount partition
+   * Split an amount into N equal parts, or by percentage weights.
+   * Remainder cents are distributed to the first parts so the total is always exact.
    *
    * @param {(Number|String)} amount numeric value
-   * @param {(Number|Number[])} parts integer or percent partition (array of percent parts)
-   * @returns {Number}
+   * @param {(Number|Number[])} parts integer or percent split (array of percent parts)
+   * @returns {Number[]}
    *
-   * @throws Will throw an error if parts arguments is not a positive integer or is not a partition of 100
    * @throws {ArgumentError} parts must be a positive integer or an array with a partition of 100
    *
    * @example
-   * partition(1,2) // [0.5,0.5]
-   * partition(1,3) // [0.34, 0.33, 0.33]
-   * partition(1,11) // [0.1,0.09,0.09,0.09,0.09,0.09,0.09,0.09,0.09,0.09,0.09]
-   * partition(1,[50,50]) // [0.5,0.5]
-   * partition(1,...[50,50]) // [0.5,0.5]
-   * partition(1,50,50) // [0.5,0.5]
-   * partition(0.01,[41,33,15,9,2]) //[0.01,0,0,0,0]
-   * partition(10,[41,33,15,9,2]) //[4.1,3.3,1.5,0.9,0.2]
-   * partition(100,"qwert") // ArgumentError: parts must be a positive integer or an array with a partition of 100
-   * partition(100,0) // ArgumentError: parts must be a positive integer or an array with a partition of 100
-   * partition(100,[50,49]) // ArgumentError: parts must be a positive integer or an array with a partition of 100
-   *
+   * split(1, 2)            // [0.5, 0.5]
+   * split(1, 3)            // [0.34, 0.33, 0.33]
+   * split(1, [50, 50])     // [0.5, 0.5]
+   * split(10, [41,33,15,9,2]) // [4.1, 3.3, 1.5, 0.9, 0.2]
+   * split(100, 0)          // ArgumentError
+   */
+  split: (amount, ...parts) => partition(amount, ...parts),
+
+  /**
+   * @deprecated Use `split` instead.
    */
   partition: (amount, ...parts) => partition(amount, ...parts),
 
