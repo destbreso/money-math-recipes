@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.3.0](https://github.com/destbreso/abakojs/compare/v2.2.0...v2.3.0) (2026-04-06)
+
+### Features
+
+* add split as preferred alias for partition ([a9d3b31](https://github.com/destbreso/abakojs/commit/a9d3b31f5698e6c9dea29a47a03b49b73e13f359))
+
 ## [2.2.0](https://github.com/destbreso/abakojs/compare/v2.0.4...v2.2.0) (2026-04-06)
 
 ### Features
