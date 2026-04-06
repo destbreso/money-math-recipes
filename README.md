@@ -1,10 +1,10 @@
-# money-math-recipes
+# abakojs
 
-Tyni, Zero-dependency monetary arithmetic for JavaScript and TypeScript. Fixes the classic floating-point problem with configurable decimal precision — from standard 2-decimal currencies to 8-decimal crypto (BTC satoshis). Ships with CJS + ESM + TypeScript types out of the box.
+Tiny, zero-dependency monetary arithmetic for JavaScript and TypeScript. Fixes the classic floating-point problem with configurable decimal precision — from standard 2-decimal currencies to 8-decimal crypto (BTC satoshis). Ships with CJS + ESM + TypeScript types out of the box.
 
 ```js
 0.1 + 0.2           // 0.30000000000000004  ← JS native
-sum(0.1, 0.2)       // 0.3                  ← money-math-recipes
+sum(0.1, 0.2)       // 0.3                  ← abakojs
 ```
 
 **Crypto-ready:** every function accepts a `decimals` parameter (default `2`) to work with any precision.
@@ -21,13 +21,13 @@ compare(0.12345678, 0.12345679, 8)  // -1
 
 ```bash
 # pnpm
-pnpm add money-math-recipes
+pnpm add abakojs
 
 # npm
-npm install money-math-recipes
+npm install abakojs
 
 # yarn
-yarn add money-math-recipes
+yarn add abakojs
 ```
 
 ---
@@ -37,7 +37,7 @@ yarn add money-math-recipes
 ### CommonJS (`require`)
 
 ```js
-const money = require('money-math-recipes');
+const money = require('abakojs');
 
 money.sum(0.1, 0.2);         // 0.3
 money.value(10.2506);        // 10.26
@@ -47,13 +47,13 @@ money.recipes.partition(1, 3); // [0.34, 0.33, 0.33]
 Named imports also work:
 
 ```js
-const { sum, value, percent, recipes } = require('money-math-recipes');
+const { sum, value, percent, recipes } = require('abakojs');
 ```
 
 ### ES Modules (`import`)
 
 ```js
-import money from 'money-math-recipes';
+import money from 'abakojs';
 
 money.sum(0.1, 0.2); // 0.3
 ```
@@ -61,7 +61,7 @@ money.sum(0.1, 0.2); // 0.3
 Named imports:
 
 ```js
-import { sum, value, fx, recipes } from 'money-math-recipes';
+import { sum, value, fx, recipes } from 'abakojs';
 ```
 
 ### TypeScript
@@ -69,7 +69,7 @@ import { sum, value, fx, recipes } from 'money-math-recipes';
 Types are bundled — no `@types` package needed.
 
 ```ts
-import { value, sum, compare, recipes } from 'money-math-recipes';
+import { value, sum, compare, recipes } from 'abakojs';
 
 const total: number = sum(19.99, 4.99);  // 24.98
 const cmp: -1 | 0 | 1 = compare(total, 25); // -1
@@ -80,7 +80,7 @@ const cmp: -1 | 0 | 1 = compare(total, 25); // -1
 Every arithmetic and comparison function accepts a `decimals` parameter (default `2`). Set it to `8` for BTC (satoshis), `6` for USDC micro-units, or any other value.
 
 ```js
-import { value, add, subtract, sum, compare, isPositive, min, max } from 'money-math-recipes';
+import { value, add, subtract, sum, compare, isPositive, min, max } from 'abakojs';
 
 // BTC arithmetic (8 decimals)
 value(0.123456789, 8)                     // 0.12345679
@@ -522,7 +522,7 @@ deductFees(200, 50, 30) // 70  (200 - 50% - 30)
 `ArgumentError` is exported for use in `catch` blocks or `instanceof` checks.
 
 ```js
-const { ArgumentError } = require('money-math-recipes');
+const { ArgumentError } = require('abakojs');
 
 try {
   divide(10, 0);
@@ -534,7 +534,7 @@ try {
 ```
 
 ```ts
-import { ArgumentError, divide } from 'money-math-recipes';
+import { ArgumentError, divide } from 'abakojs';
 
 try {
   divide(10, 0);
@@ -552,71 +552,71 @@ Run them yourself: `node bench/bench.js`
 
 ### Speed (ops/sec — higher is better)
 
-| Operation               | money-math-recipes |   currency.js | decimal.js | dinero.js v2 |
-|-------------------------|-------------------:|--------------:|-----------:|-------------:|
-| `add(0.1, 0.2)`         |      **2,250,335** |     1,498,950 |  1,646,491 |  3,536,595 ¹ |
-| `subtract(1.01, 0.99)`  |      **3,153,802** |     1,609,369 |  1,351,347 |  4,152,963 ¹ |
-| `multiply(165, 1.40)`   |      **3,728,548** |     1,931,203 |  2,630,027 |  8,345,742 ¹ |
-| `value()` rounding      |          3,337,585 | **4,626,968** |  2,044,684 |            — |
-| `partition(1, 3)`       |      **1,273,354** |       660,646 |          — |  1,331,005 ¹ |
-| `sum([10 items])`       |        **530,404** |       142,896 |    332,133 |            — |
-| `percent(524.25, 8.75)` |      **2,427,743** |       582,216 |    639,355 |            — |
+| Operation               |       abakojs |   currency.js | decimal.js | dinero.js v2 |
+|-------------------------|--------------:|--------------:|-----------:|-------------:|
+| `add(0.1, 0.2)`         | **2,250,335** |     1,498,950 |  1,646,491 |  3,536,595 ¹ |
+| `subtract(1.01, 0.99)`  | **3,153,802** |     1,609,369 |  1,351,347 |  4,152,963 ¹ |
+| `multiply(165, 1.40)`   | **3,728,548** |     1,931,203 |  2,630,027 |  8,345,742 ¹ |
+| `value()` rounding      |     3,337,585 | **4,626,968** |  2,044,684 |            — |
+| `partition(1, 3)`       | **1,273,354** |       660,646 |          — |  1,331,005 ¹ |
+| `sum([10 items])`       |   **530,404** |       142,896 |    332,133 |            — |
+| `percent(524.25, 8.75)` | **2,427,743** |       582,216 |    639,355 |            — |
 
 ### Crypto precision (8 decimals, ops/sec)
 
-| Operation              | money-math-recipes |   currency.js | decimal.js | dinero.js v2 |
-|------------------------|-------------------:|--------------:|-----------:|-------------:|
-| `add` (8 decimals)     |      **2,556,626** |     1,170,208 |  1,144,156 |  5,433,023 ¹ |
-| `compare` (8 decimals) |      **1,662,050** |     1,794,539 |  2,955,653 |            — |
-| `format` (USD)         |           56,220 ² | **1,299,684** |          — |            — |
-| `convert` (USD→EUR)    |      **3,470,793** |             — |          — |            — |
+| Operation              |       abakojs |   currency.js | decimal.js | dinero.js v2 |
+|------------------------|--------------:|--------------:|-----------:|-------------:|
+| `add` (8 decimals)     | **2,556,626** |     1,170,208 |  1,144,156 |  5,433,023 ¹ |
+| `compare` (8 decimals) | **1,662,050** |     1,794,539 |  2,955,653 |            — |
+| `format` (USD)         |      56,220 ² | **1,299,684** |          — |            — |
+| `convert` (USD→EUR)    | **3,470,793** |             — |          — |            — |
 
 > ¹ dinero.js v2 operates on integer cents internally (amounts pre-multiplied ×100), which skips the float-to-cents conversion step. It requires a verbose setup (`dinero({ amount: 10, currency: USD })`) for every value — not a drop-in replacement.
 >
 > ² `format()` uses `Intl.NumberFormat` under the hood for full locale + currency symbol support. This is inherently slower than currency.js's custom string formatter, but produces correct i18n output in any locale without extra dependencies.
 
-**money-math-recipes is 2–4× faster than currency.js and decimal.js** across all operations. dinero.js v2 is faster in raw throughput because it works with pre-scaled integers, but requires significantly more boilerplate.
+**abakojs is 2–4× faster than currency.js and decimal.js** across all operations. dinero.js v2 is faster in raw throughput because it works with pre-scaled integers, but requires significantly more boilerplate.
 
 ### Package size (total JS files on disk)
 
-| Library                |        Size |
-|------------------------|------------:|
-| **money-math-recipes** | **28.4 KB** |
-| currency.js            |     35.4 KB |
-| decimal.js             |    277.7 KB |
-| dinero.js v2           |    837.9 KB |
+| Library      |        Size |
+|--------------|------------:|
+| **abakojs**  | **28.4 KB** |
+| currency.js  |     35.4 KB |
+| decimal.js   |    277.7 KB |
+| dinero.js v2 |    837.9 KB |
 
 ### Feature comparison
 
-| Feature                                                    | money-math-recipes | currency.js | dinero.js v2 | decimal.js |
-|------------------------------------------------------------|:------------------:|:-----------:|:------------:|:----------:|
-| Zero runtime dependencies                                  |         ✅          |      ✅      |      ✅       |     ✅      |
-| TypeScript types bundled                                   |         ✅          |      ✅      |      ✅       |     ✅      |
-| ESM + CJS support                                          |         ✅          |      ✅      |      ✅       |     ✅      |
-| Simple number API (no wrappers)                            |         ✅          |      ❌      |      ❌       |     ❌      |
-| Aggregate sum of N amounts                                 |         ✅          |      ❌      |      ❌       |     ❌      |
-| Fee recipes (addPercent, maxFee, addFees…)                 |         ✅          |      ❌      |      ❌       |     ❌      |
-| Discount recipes (applyDiscount, maxDiscount, sumDiscount) |         ✅          |      ❌      |      ❌       |     ❌      |
-| Safe partition (exact cent distribution)                   |         ✅          |      ✅      |      ✅       |     ❌      |
-| Helpers (isValid, isZero, isPositive…)                     |         ✅          |      ❌      |      ✅       |     ✅      |
-| FX rate conversion                                         |         ✅          |      ✅      |      ✅       |     ❌      |
-| Currency formatting / symbols                              |         ✅          |      ✅      |      ✅       |     ❌      |
-| Arbitrary precision (beyond 2 decimals)                    |  ✅ (configurable)  |      ✅      |      ✅       |     ✅      |
-| Crypto-ready (BTC satoshis, 8+ decimals)                   |         ✅          |      ✅      |      ✅       |     ✅      |
-| Multi-currency arithmetic                                  |         ✅          |      ❌      |      ✅       |     ❌      |
-| Internationalisation (i18n)                                |         ❌          |      ✅      |      ✅       |     ❌      |
+| Feature                                                    |     abakojs      | currency.js | dinero.js v2 | decimal.js |
+|------------------------------------------------------------|:----------------:|:-----------:|:------------:|:----------:|
+| Zero runtime dependencies                                  |        ✅         |      ✅      |      ✅       |     ✅      |
+| TypeScript types bundled                                   |        ✅         |      ✅      |      ✅       |     ✅      |
+| ESM + CJS support                                          |        ✅         |      ✅      |      ✅       |     ✅      |
+| Simple number API (no wrappers)                            |        ✅         |      ❌      |      ❌       |     ❌      |
+| Aggregate sum of N amounts                                 |        ✅         |      ❌      |      ❌       |     ❌      |
+| Fee recipes (addPercent, maxFee, addFees…)                 |        ✅         |      ❌      |      ❌       |     ❌      |
+| Discount recipes (applyDiscount, maxDiscount, sumDiscount) |        ✅         |      ❌      |      ❌       |     ❌      |
+| Safe partition (exact cent distribution)                   |        ✅         |      ✅      |      ✅       |     ❌      |
+| Helpers (isValid, isZero, isPositive…)                     |        ✅         |      ❌      |      ✅       |     ✅      |
+| FX rate conversion                                         |        ✅         |      ✅      |      ✅       |     ❌      |
+| Currency formatting / symbols                              |        ✅         |      ✅      |      ✅       |     ❌      |
+| Arbitrary precision (beyond 2 decimals)                    | ✅ (configurable) |      ✅      |      ✅       |     ✅      |
+| Crypto-ready (BTC satoshis, 8+ decimals)                   |        ✅         |      ✅      |      ✅       |     ✅      |
+| Multi-currency arithmetic                                  |        ✅         |      ❌      |      ✅       |     ❌      |
+| Internationalisation (i18n)                                |        ❌         |      ✅      |      ✅       |     ❌      |
 
 ### When to use what
 
-| Use case                                            | Recommended              |
-|-----------------------------------------------------|--------------------------|
-| Monetary arithmetic — clean, fast, zero boilerplate | ✅ **money-math-recipes** |
-| Crypto arithmetic (BTC, ETH, configurable decimals) | ✅ **money-math-recipes** |
-| Currency formatting (`$1,234.56`, `€1.234,56`)      | ✅ **money-math-recipes** |
-| Multi-currency conversion with rates table          | ✅ **money-math-recipes** |
-| Multi-currency ledger with currency-typed objects   | dinero.js v2             |
-| Scientific / arbitrary-precision decimals           | decimal.js               |
-| Maximum raw throughput, integer-only data           | dinero.js v2             |
+| Use case                                            | Recommended   |
+|-----------------------------------------------------|---------------|
+| Monetary arithmetic — clean, fast, zero boilerplate | ✅ **abakojs** |
+| Crypto arithmetic (BTC, ETH, configurable decimals) | ✅ **abakojs** |
+| Currency formatting (`$1,234.56`, `€1.234,56`)      | ✅ **abakojs** |
+| Multi-currency conversion with rates table          | ✅ **abakojs** |
+| Multi-currency ledger with currency-typed objects   | dinero.js v2  |
+| Scientific / arbitrary-precision decimals           | decimal.js    |
+| Maximum raw throughput, integer-only data           | dinero.js v2  |
 
 ---
 
