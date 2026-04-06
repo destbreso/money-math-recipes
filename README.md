@@ -1,107 +1,229 @@
 # abakojs
 
-Tiny, zero-dependency monetary arithmetic for JavaScript and TypeScript. Fixes the classic floating-point problem with configurable decimal precision — from standard 2-decimal currencies to 8-decimal crypto (BTC satoshis). Ships with CJS + ESM + TypeScript types out of the box.
+> Tiny, zero-dependency monetary arithmetic for JavaScript and TypeScript.
+
+---
+
+## The Problem
+
+JavaScript arithmetic is broken for money:
 
 ```js
-0.1 + 0.2           // 0.30000000000000004  ← JS native
-sum(0.1, 0.2)       // 0.3                  ← abakojs
+// Addition
+0.1 + 0.2                // 0.30000000000000004
+0.1 + 0.2 + 0.3          // 0.6000000000000001
+
+// Multiplication
+0.07 * 3                 // 0.21000000000000002
+100 * 0.07               // 7.000000000000001
+
+// Percentages
+1.15 * 100               // 114.99999999999999  ← 15% markup gone wrong
+49.99 * 0.92             // 45.99080000000001   ← FX conversion drift
+
+// Rounding
+(1.005).toFixed(2)       // "1.00"  ← should be "1.01"
 ```
 
-**Crypto-ready:** every function accepts a `decimals` parameter (default `2`) to work with any precision.
+This is not a bug — it's how IEEE 754 floating-point works. But when you're building an invoice, a checkout, or a crypto wallet, wrong numbers mean real money lost.
+
+---
+
+## The Solution
+
+**abakojs** gives you a simple, native-number API that always rounds correctly, without wrappers, classes, or configuration ceremony.
 
 ```js
-add(0.12345678, 0.00000001, 8)   // 0.12345679  (8-decimal BTC math)
-value(1.23456789, 8)             // 1.23456789  (satoshi precision)
-compare(0.12345678, 0.12345679, 8)  // -1
+import { sum, multiply, percent, fx, value } from 'abakojs';
+
+0.1 + 0.2              // 0.30000000000000004  ← JS native
+sum(0.1, 0.2)          // 0.3                  ✓
+
+0.07 * 3               // 0.21000000000000002  ← JS native
+multiply(0.07, 3)      // 0.21                 ✓
+
+1.15 * 100             // 114.99999999999999   ← JS native
+percent(100, 15)       // 15   → 100 + 15 = 115 ✓
+
+49.99 * 0.92           // 45.99080000000001    ← JS native
+fx(49.99, 0.92)        // 45.99                ✓
+
+value(1.005)           // 1.01                 ✓
+```
+
+Plain numbers in, plain numbers out. No `new Money()`, no `.toUnit()`, no boilerplate.
+
+All functions also accept **strings** and **mixed inputs** — whatever comes back from a form, an API, or a database:
+
+```js
+add('0.1', '0.2')              // 0.3  ✓
+sum('19.99', 4.99, '0.50')     // 25.48  ✓
+multiply('19.99', '3')         // 59.97  ✓
+fx('49.99', 0.92)              // 45.99  ✓
+compare('1.99', '2.00')        // -1  ✓
 ```
 
 ---
 
-## Installation
+## Install
 
 ```bash
-# pnpm
-pnpm add abakojs
-
-# npm
 npm install abakojs
+# pnpm add abakojs
+# yarn add abakojs
+```
 
-# yarn
-yarn add abakojs
+TypeScript types and ESM/CJS builds are included — no `@types` package needed.
+
+---
+
+## Quick Start
+
+```js
+// CommonJS
+const { sum, value, percent, addPercent, deductPercent, partition } = require('abakojs');
+
+// ESM / TypeScript
+import { sum, value, percent, addPercent, deductPercent, partition } from 'abakojs';
+```
+
+```js
+value(10.2506)           // 10.26
+sum(19.99, 4.99, 0.50)   // 25.48
+percent(200, 8.5)        // 17
+addPercent(100, 21)      // 121  (add 21% VAT)
+deductPercent(100, 10)   // 90   (10% discount)
+partition(100, 3)        // [33.34, 33.33, 33.33]  ← exact, no cent lost
+```
+
+**Strings work everywhere** — numbers, strings, and mixed inputs are all accepted:
+
+```js
+sum('19.99', 4.99, '0.50')   // 25.48
+add('0.1', '0.2')            // 0.3
+multiply('19.99', 3)         // 59.97
+```
+
+**Cents workflow** — convert to/from integer cents for storage or legacy APIs:
+
+```js
+const c = cents(3.12)        // 312
+cents2Amount(c)              // 3.12
+cents2Amount(cents(19.99))   // 19.99  (round-trip)
 ```
 
 ---
 
-## Usage
+## Common Use Cases
 
-### CommonJS (`require`)
-
-```js
-const money = require('abakojs');
-
-money.sum(0.1, 0.2);         // 0.3
-money.value(10.2506);        // 10.26
-money.recipes.partition(1, 3); // [0.34, 0.33, 0.33]
-```
-
-Named imports also work:
+### E-commerce cart total
 
 ```js
-const { sum, value, percent, recipes } = require('abakojs');
+import { sum, multiply, deductPercent, addPercent } from 'abakojs';
+
+const items = [
+  { price: 19.99, qty: 2 },
+  { price: 4.99,  qty: 1 },
+  { price: 0.49,  qty: 3 },
+];
+
+const subtotal    = sum(items.map(i => multiply(i.price, i.qty)));
+// 44.44  (= 39.98 + 4.99 + 1.47) — no rounding drift
+
+const afterCoupon = deductPercent(subtotal, 10);  // 40
+const total       = addPercent(afterCoupon, 21);  // 48.4  (21% VAT)
 ```
 
-### ES Modules (`import`)
+### Invoice with fees
 
 ```js
-import money from 'abakojs';
+import { addFees, addMaxFee, deductFees } from 'abakojs';
 
-money.sum(0.1, 0.2); // 0.3
+// Platform fee: 2% + $0.30 flat (Stripe-style)
+addFees(100, 2, 0.30)       // 102.30
+
+// Charge whichever is higher: 3% or $5 minimum
+addMaxFee(100, 3, 5)        // 105   (5 wins over 3)
+addMaxFee(500, 3, 5)        // 515   (15 wins over 5)
+
+// Coupon: 15% off + $2 flat discount
+deductFees(80, 15, 2)       // 66
 ```
 
-Named imports:
+### Split a bill without losing cents
 
 ```js
-import { sum, value, fx, recipes } from 'abakojs';
+import { partition } from 'abakojs';
+
+partition(100, 3)                     // [33.34, 33.33, 33.33]
+partition(100, [50, 30, 20])          // [50, 30, 20]
+partition(0.01, [50, 30, 20])         // [0.01, 0, 0]  ← remainder goes to first
 ```
 
-### TypeScript
-
-Types are bundled — no `@types` package needed.
-
-```ts
-import { value, sum, compare, recipes } from 'abakojs';
-
-const total: number = sum(19.99, 4.99);  // 24.98
-const cmp: -1 | 0 | 1 = compare(total, 25); // -1
-```
-
-### Crypto / Configurable Precision
-
-Every arithmetic and comparison function accepts a `decimals` parameter (default `2`). Set it to `8` for BTC (satoshis), `6` for USDC micro-units, or any other value.
+### Currency formatting
 
 ```js
-import { value, add, subtract, sum, compare, isPositive, min, max } from 'abakojs';
+import { format } from 'abakojs';
 
-// BTC arithmetic (8 decimals)
-value(0.123456789, 8)                     // 0.12345679
-add(0.12345678, 0.00000001, 8)            // 0.12345679
-subtract(1, 0.00000001, 8)                // 0.99999999
-sum(0.001, 0.002, 0.003, { decimals: 8 }) // 0.006
-compare(0.12345678, 0.12345679, 8)        // -1
-isPositive(0.00000001, 8)                 // true
-min(0.123, 0.124, { decimals: 8 })        // 0.123
-max(0.123, 0.124, { decimals: 8 })        // 0.124
+format(1234.56, 'USD', 'en-US')   // '$1,234.56'
+format(1234.56, 'EUR', 'de-DE')   // '1.234,56 €'
+format(1234.56, 'GBP', 'en-GB')   // '£1,234.56'
+format(-19.99, 'USD', 'en-US')    // '-$19.99'
+format(0.12345678, 'BTC')         // '₿0.12345678'
 ```
 
-> **Note:** For variadic functions (`sum`, `min`, `max`), pass `{ decimals }` as the last argument. For all other functions, `decimals` is a regular positional parameter.
+### Multi-currency conversion
+
+```js
+import { convert } from 'abakojs';
+
+const rates = { USD: 1, EUR: 0.92, GBP: 0.79, JPY: 149.5 };
+
+convert(100, 'USD', 'EUR', rates)       // 92
+convert(100, 'EUR', 'USD', rates)       // 108.7
+convert(100, 'EUR', 'GBP', rates)       // 85.87  (cross-rate auto-calculated)
+```
+
+### Crypto / high-precision arithmetic
+
+Every function accepts a `decimals` parameter (default `2`). Set it to `8` for BTC, `6` for USDC, or any value.
+
+```js
+import { add, subtract, sum, compare, isPositive, value } from 'abakojs';
+
+value(0.123456789, 8)                          // 0.12345679
+add(0.12345678, 0.00000001, 8)                 // 0.12345679
+subtract(1, 0.00000001, 8)                     // 0.99999999
+sum(0.001, 0.002, 0.003, { decimals: 8 })      // 0.006
+compare(0.12345678, 0.12345679, 8)             // -1
+isPositive(0.00000001, 8)                      // true  (1 satoshi > 0)
+```
+
+> For variadic functions (`sum`, `min`, `max`) pass `{ decimals }` as the last argument. For all others it's a regular positional parameter.
+
+### Comparing and sorting amounts
+
+```js
+import { compare, equal, greaterThan, min, max } from 'abakojs';
+
+compare(1.99, 2.00)        // -1
+equal(0.1 + 0.2, 0.3)     // true  (safe after rounding)
+greaterThan(10, 9.99)      // true
+
+const prices = [14.99, 9.50, 22.00, 4.75];
+min(...prices)             // 4.75
+max(...prices)             // 22
+```
 
 ---
 
-## API
+## API Reference
 
 All functions return `NaN` for invalid inputs (`null`, `undefined`, `[]`, `{}`, `true/false`, non-numeric strings) unless otherwise noted.
 
-### `value(amount, decimals?)`
+### Core
+
+#### `value(amount, decimals?)`
 
 Rounds an amount to the specified number of decimal places (default `2`). This is the core of the library — all other functions route through it.
 
@@ -112,7 +234,7 @@ value('50.001')         // 50.01
 value(null)             // NaN
 ```
 
-### `cents(amount)`
+#### `cents(amount)`
 
 Converts a monetary amount to its integer cent representation.
 
@@ -123,7 +245,7 @@ cents(3.12)    // 312
 cents(0.11001) // 12
 ```
 
-### `cents2Amount(cents)`
+#### `cents2Amount(cents)`
 
 Converts an integer cent value back to a monetary amount.
 
@@ -137,7 +259,7 @@ cents2Amount(12.5)   // throws ArgumentError: cents must be positive integer
 cents2Amount(-25)    // throws ArgumentError: cents must be positive integer
 ```
 
-### `fx(amount, fxRate, decimals?)`
+#### `fx(amount, fxRate, decimals?)`
 
 Applies an exchange rate to an amount.
 
@@ -148,7 +270,9 @@ fx(100, 0.0000155235)     // 0.01
 fx(100, 0.0000155235, 4)  // 0.0016
 ```
 
-### `sum(...amounts)` / `sum(amounts[])` / `sum(...amounts, { decimals })`
+### Arithmetic
+
+#### `sum(...amounts)` / `sum(amounts[])` / `sum(...amounts, { decimals })`
 
 Aggregates any number of amounts. Accepts variadic arguments, spread arrays, or a single array. Pass `{ decimals }` as the last argument for custom precision.
 
@@ -163,7 +287,7 @@ sum(0.12345678, 0.00000001, { decimals: 8 })   // 0.12345679
 sum([0.001, 0.002, 0.003], { decimals: 8 })    // 0.006
 ```
 
-### `add(x, y, decimals?)`
+#### `add(x, y, decimals?)`
 
 Adds two amounts.
 
@@ -175,7 +299,7 @@ add(9.99, 0.01) // 10
 add(0.12345678, 0.00000001, 8)  // 0.12345679
 ```
 
-### `subtract(x, y, decimals?)`
+#### `subtract(x, y, decimals?)`
 
 Subtracts `y` from `x`.
 
@@ -187,7 +311,7 @@ subtract(0.3, 0.1)    // 0.2
 subtract(0.12345679, 0.00000001, 8)  // 0.12345678
 ```
 
-### `multiply(amount, factor, decimals?)`
+#### `multiply(amount, factor, decimals?)`
 
 Multiplies an amount by a factor.
 
@@ -196,7 +320,7 @@ multiply(165, 1.40) // 231
 multiply(100, 0.5)  // 50
 ```
 
-### `divide(amount, divisor, decimals?)`
+#### `divide(amount, divisor, decimals?)`
 
 Divides an amount. Throws `ArgumentError` on division by zero.
 
@@ -206,7 +330,7 @@ divide(10, 3)      // 3.34
 divide(10, 0)      // throws ArgumentError: cant divide by zero
 ```
 
-### `percent(amount, p, decimals?)`
+#### `percent(amount, p, decimals?)`
 
 Computes `p`% of `amount`.
 
@@ -219,7 +343,9 @@ percent(99.99, 50)   // 50
 percent(0.12345678, 10, 8)  // 0.01234568
 ```
 
-### `compare(lh, rh, decimals?)`
+### Comparison
+
+#### `compare(lh, rh, decimals?)`
 
 Compares two monetary amounts after rounding. Returns `-1`, `0`, or `1`. Returns `NaN` if either operand is invalid.
 
@@ -237,7 +363,9 @@ compare(0.12345678, 0.12345678, 8)  // 0
 
 > **Note:** values are rounded before comparison. `compare(0.001, 0.002)` → `0` because both round to `0.01`.
 
-### `isValid(amount)`
+### Guards
+
+#### `isValid(amount)`
 
 Returns `true` if the value is a valid numeric monetary amount.
 
@@ -251,7 +379,7 @@ isValid([])        // false
 isValid(true)      // false
 ```
 
-### `isZero(amount, decimals?)`
+#### `isZero(amount, decimals?)`
 
 ```js
 isZero(0)     // true
@@ -262,7 +390,7 @@ isZero(0.00000001, 8) // false (1 satoshi is not zero)
 isZero(0, 8)          // true
 ```
 
-### `isPositive(amount, decimals?)`
+#### `isPositive(amount, decimals?)`
 
 ```js
 isPositive(1)   // true
@@ -273,7 +401,7 @@ isPositive(-1)  // false
 isPositive(0.00000001, 8)  // true
 ```
 
-### `isNegative(amount, decimals?)`
+#### `isNegative(amount, decimals?)`
 
 ```js
 isNegative(-1)  // true
@@ -284,7 +412,7 @@ isNegative(1)   // false
 isNegative(-0.00000001, 8)  // true
 ```
 
-### `abs(amount, decimals?)`
+#### `abs(amount, decimals?)`
 
 Returns the absolute value of a monetary amount.
 
@@ -294,7 +422,7 @@ abs(10.50)   // 10.50
 abs('-3.14') // 3.14
 ```
 
-### `min(...amounts)` / `min(amounts[])` / `min(...amounts, { decimals })`
+#### `min(...amounts)` / `min(amounts[])` / `min(...amounts, { decimals })`
 
 Returns the smallest value from the given amounts.
 
@@ -307,7 +435,7 @@ min(-1, -5, 0)       // -5
 min(0.12345678, 0.12345679, { decimals: 8 })  // 0.12345678
 ```
 
-### `max(...amounts)` / `max(amounts[])` / `max(...amounts, { decimals })`
+#### `max(...amounts)` / `max(amounts[])` / `max(...amounts, { decimals })`
 
 Returns the largest value from the given amounts.
 
@@ -320,7 +448,7 @@ max(-1, -5, 0)       // 0
 max(0.12345678, 0.12345679, { decimals: 8 })  // 0.12345679
 ```
 
-### `equal(lh, rh, decimals?)`
+#### `equal(lh, rh, decimals?)`
 
 Returns `true` if two amounts are equal after rounding.
 
@@ -330,7 +458,7 @@ equal(1, 1.004)   // true  (both round to 1.00)
 equal(1, 2)       // false
 ```
 
-### `greaterThan(lh, rh, decimals?)`
+#### `greaterThan(lh, rh, decimals?)`
 
 ```js
 greaterThan(2, 1)    // true
@@ -338,7 +466,7 @@ greaterThan(1, 2)    // false
 greaterThan(1, 1)    // false
 ```
 
-### `greaterThanOrEqual(lh, rh, decimals?)`
+#### `greaterThanOrEqual(lh, rh, decimals?)`
 
 ```js
 greaterThanOrEqual(2, 1)  // true
@@ -346,7 +474,7 @@ greaterThanOrEqual(1, 1)  // true
 greaterThanOrEqual(1, 2)  // false
 ```
 
-### `lessThan(lh, rh, decimals?)`
+#### `lessThan(lh, rh, decimals?)`
 
 ```js
 lessThan(1, 2)    // true
@@ -354,7 +482,7 @@ lessThan(2, 1)    // false
 lessThan(1, 1)    // false
 ```
 
-### `lessThanOrEqual(lh, rh, decimals?)`
+#### `lessThanOrEqual(lh, rh, decimals?)`
 
 ```js
 lessThanOrEqual(1, 2)  // true
@@ -362,7 +490,9 @@ lessThanOrEqual(1, 1)  // true
 lessThanOrEqual(2, 1)  // false
 ```
 
-### `format(amount, currencyCode?, locale?, options?)`
+### Formatting & Conversion
+
+#### `format(amount, currencyCode?, locale?, options?)`
 
 Formats a monetary amount as a currency string using `Intl.NumberFormat`. Handles standard ISO 4217 currencies and crypto (BTC, ETH, SAT).
 
@@ -384,7 +514,7 @@ format(100)                           // '$100.00' (locale-dependent)
 
 Throws `ArgumentError` if the amount is not numeric or the currency code is unsupported.
 
-### `convert(amount, from, to, rates, decimals?)`
+#### `convert(amount, from, to, rates, decimals?)`
 
 Converts an amount between currencies using a rates table. The `rates` object maps currency codes to rates relative to a common base — the library calculates cross-rates automatically.
 
@@ -408,11 +538,11 @@ Throws `ArgumentError` if a currency code is missing from the rates object or if
 
 ## Recipes
 
-Higher-level operations exposed via `recipes.*` and also available as top-level named exports.
+Higher-level operations available as `recipes.*` and as direct named exports.
 
-### `recipes.partition(amount, parts)` / `partition(amount, parts)`
+### `partition(amount, parts)`
 
-Splits an amount into equal or weighted parts, guaranteeing the sum is always exact (no cent is lost or duplicated).
+Splits an amount into equal or weighted parts, guaranteeing the total is always exact — no cent is lost or duplicated.
 
 **Equal parts:**
 
@@ -545,10 +675,12 @@ try {
 
 ---
 
-## Comparison
+## Benchmarks
 
-Benchmarks run on Node.js v22.14.0 · macOS · Apple M-series · 500,000 iterations each.  
+Node.js v22.14.0 · macOS · Apple M-series · 500,000 iterations each.  
 Run them yourself: `node bench/bench.js`
+
+---
 
 ### Speed (ops/sec — higher is better)
 

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://unpkg.com/release-it/schema/release-it.json",
+  "hooks": {
+    "before:init": "pnpm test"
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "preset": {
+        "name": "conventionalcommits"
+      },
+      "infile": "CHANGELOG.md"
+    }
+  },
+  "git": {
+    "commitMessage": "chore(release): v${version}",
+    "tagName": "v${version}",
+    "push": true
+  },
+  "github": {
+    "release": false
+  },
+  "npm": {
+    "publish": true
+  }
+}

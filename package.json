@@ -1,6 +1,6 @@
 {
   "name": "abakojs",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Zero-dependency monetary arithmetic for JS & TS. Precise rounding, fees, discounts, partition, formatting & crypto support. ESM + CJS.",
   "author": "destbreso <destevezbreso@gmail.com>",
   "license": "MIT",
@@ -29,7 +29,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "doc-api": "jsdoc2md index.js > doc/API.md",
-    "bench": "node bench/bench.js"
+    "bench": "node bench/bench.js",
+    "release": "release-it"
   },
   "keywords": [
     "money",
@@ -46,7 +47,7 @@
     "zero-dependency"
   ],
   "devDependencies": {
-    "@semantic-release/release-notes-generator": "^9.0.3",
+    "@release-it/conventional-changelog": "^10.0.6",
     "currency.js": "^2.0.4",
     "decimal.js": "^10.6.0",
     "dinero.js": "^2.0.2",
@@ -54,6 +55,7 @@
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.23.4",
     "jest": "^29.7.0",
-    "jsdoc-to-markdown": "^7.0.1"
+    "jsdoc-to-markdown": "^7.0.1",
+    "release-it": "^19.2.4"
   }
 }
