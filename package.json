@@ -1,6 +1,6 @@
 {
   "name": "abakojs",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "Zero-dependency monetary arithmetic for JS & TS. Precise rounding, fees, discounts, partition, formatting & crypto support. ESM + CJS.",
   "author": "destbreso <destevezbreso@gmail.com>",
   "license": "MIT",
