@@ -865,7 +865,9 @@ describe("#money", () => {
         expect(recipes.split(1, [50, 50])).toEqual([0.5, 0.5]);
       });
       it("100 as [41%,33%,15%,9%,2%] is [41,33,15,9,2]", () => {
-        expect(recipes.split(100, [41, 33, 15, 9, 2])).toEqual([41, 33, 15, 9, 2]);
+        expect(recipes.split(100, [41, 33, 15, 9, 2])).toEqual([
+          41, 33, 15, 9, 2,
+        ]);
       });
       it("100 as ...[50%,50%] is [50,50]", () => {
         expect(recipes.split(100, ...[50, 50])).toEqual([50, 50]);
@@ -1016,6 +1018,37 @@ describe("#money", () => {
       });
       it("at 2 decimals 0.12345678 vs 0.12345679 both round to 0.13, returns 0", () => {
         expect(compare(0.12345678, 0.12345679)).toEqual(0);
+      });
+
+      // README examples — realistic prices
+      it("19.99 vs 24.99 returns -1", () => {
+        expect(compare(19.99, 24.99)).toEqual(-1);
+      });
+      it("24.99 vs 19.99 returns 1", () => {
+        expect(compare(24.99, 19.99)).toEqual(1);
+      });
+      it("9.99 vs 9.990 returns 0 (trailing zero)", () => {
+        expect(compare(9.99, 9.99)).toEqual(0);
+      });
+      it("'0.10' vs 0.1 returns 0 (string input)", () => {
+        expect(compare("0.10", 0.1)).toEqual(0);
+      });
+      it("NaN vs 1.99 returns NaN", () => {
+        expect(compare(NaN, 1.99)).toEqual(NaN);
+      });
+
+      // Precision-varying: values that differ only beyond the active decimal place
+      it("9.994 vs 9.999 at 2dp: both round to 9.99 → 0", () => {
+        expect(compare(9.994, 9.999)).toEqual(0);
+      });
+      it("9.994 vs 9.999 at 3dp: 9.994 < 9.999 → -1", () => {
+        expect(compare(9.994, 9.999, 3)).toEqual(-1);
+      });
+      it("14.9949 vs 14.9951 at 2dp: both round to 14.99 → 0", () => {
+        expect(compare(14.9949, 14.9951)).toEqual(0);
+      });
+      it("14.9949 vs 14.9951 at 4dp: 14.9949 < 14.9951 → -1", () => {
+        expect(compare(14.9949, 14.9951, 4)).toEqual(-1);
       });
     });
 
@@ -1303,10 +1336,14 @@ describe("#money", () => {
         expect(deductMaxFee(50, 10, 10)).toEqual(40);
       });
       it("is an alias of applyMaxDiscount", () => {
-        expect(deductMaxFee(100, 10, 20)).toEqual(applyMaxDiscount(100, 10, 20));
+        expect(deductMaxFee(100, 10, 20)).toEqual(
+          applyMaxDiscount(100, 10, 20),
+        );
       });
       it("recipes.deductMaxFee matches top-level", () => {
-        expect(recipes.deductMaxFee(100, 10, 20)).toEqual(deductMaxFee(100, 10, 20));
+        expect(recipes.deductMaxFee(100, 10, 20)).toEqual(
+          deductMaxFee(100, 10, 20),
+        );
       });
     });
 
@@ -1324,7 +1361,9 @@ describe("#money", () => {
         expect(deductFees(100, 10, 20)).toEqual(applySumDiscount(100, 10, 20));
       });
       it("recipes.deductFees matches top-level", () => {
-        expect(recipes.deductFees(100, 10, 20)).toEqual(deductFees(100, 10, 20));
+        expect(recipes.deductFees(100, 10, 20)).toEqual(
+          deductFees(100, 10, 20),
+        );
       });
     });
 
@@ -1497,6 +1536,28 @@ describe("#money", () => {
       it("0.000000001 and 0.000000002 equal at 8 decimals (both round to 0.00000001)", () => {
         expect(equal(0.000000001, 0.000000002, 8)).toEqual(true);
       });
+
+      // README examples — realistic prices
+      it("19.99 equals 19.99", () => {
+        expect(equal(19.99, 19.99)).toEqual(true);
+      });
+      it("49.981 equals 49.99 (49.981 ceilings to 49.99)", () => {
+        expect(equal(49.981, 49.99)).toEqual(true);
+      });
+      it("19.99 does not equal 20.00", () => {
+        expect(equal(19.99, 20.0)).toEqual(false);
+      });
+
+      // Precision-varying
+      it("49.994 equals 49.999 at 2dp: both ceiling to 50.00", () => {
+        expect(equal(49.994, 49.999)).toEqual(true);
+      });
+      it("49.994 does not equal 49.999 at 3dp", () => {
+        expect(equal(49.994, 49.999, 3)).toEqual(false);
+      });
+      it("9.9949 equals 9.9951 at 2dp: both ceiling to 10.00", () => {
+        expect(equal(9.9949, 9.9951)).toEqual(true);
+      });
     });
 
     describe("#greaterThan", () => {
@@ -1531,6 +1592,25 @@ describe("#money", () => {
       it("0.12345678 > 0.12345679 is false (8 decimals)", () => {
         expect(greaterThan(0.12345678, 0.12345679, 8)).toEqual(false);
       });
+
+      // README examples — realistic prices
+      it("24.99 > 19.99 is true", () => {
+        expect(greaterThan(24.99, 19.99)).toEqual(true);
+      });
+      it("19.99 > 24.99 is false", () => {
+        expect(greaterThan(19.99, 24.99)).toEqual(false);
+      });
+      it("19.99 > 19.99 is false", () => {
+        expect(greaterThan(19.99, 19.99)).toEqual(false);
+      });
+
+      // Precision-varying
+      it("9.999 > 9.994 at 2dp is false: both round to 9.99", () => {
+        expect(greaterThan(9.999, 9.994)).toEqual(false);
+      });
+      it("9.999 > 9.994 at 3dp is true", () => {
+        expect(greaterThan(9.999, 9.994, 3)).toEqual(true);
+      });
     });
 
     describe("#greaterThanOrEqual", () => {
@@ -1556,6 +1636,25 @@ describe("#money", () => {
       });
       it("0.12345678 >= 0.12345679 is false (8 decimals)", () => {
         expect(greaterThanOrEqual(0.12345678, 0.12345679, 8)).toEqual(false);
+      });
+
+      // README examples — realistic prices
+      it("24.99 >= 19.99 is true", () => {
+        expect(greaterThanOrEqual(24.99, 19.99)).toEqual(true);
+      });
+      it("19.99 >= 19.99 is true", () => {
+        expect(greaterThanOrEqual(19.99, 19.99)).toEqual(true);
+      });
+      it("14.99 >= 19.99 is false", () => {
+        expect(greaterThanOrEqual(14.99, 19.99)).toEqual(false);
+      });
+
+      // Precision-varying
+      it("9.994 >= 9.999 at 2dp is true: both round to 9.99 → equal", () => {
+        expect(greaterThanOrEqual(9.994, 9.999)).toEqual(true);
+      });
+      it("9.994 >= 9.999 at 3dp is false", () => {
+        expect(greaterThanOrEqual(9.994, 9.999, 3)).toEqual(false);
       });
     });
 
@@ -1591,6 +1690,25 @@ describe("#money", () => {
       it("0.12345679 < 0.12345678 is false (8 decimals)", () => {
         expect(lessThan(0.12345679, 0.12345678, 8)).toEqual(false);
       });
+
+      // README examples — realistic prices
+      it("14.99 < 19.99 is true", () => {
+        expect(lessThan(14.99, 19.99)).toEqual(true);
+      });
+      it("19.99 < 14.99 is false", () => {
+        expect(lessThan(19.99, 14.99)).toEqual(false);
+      });
+      it("19.99 < 19.99 is false", () => {
+        expect(lessThan(19.99, 19.99)).toEqual(false);
+      });
+
+      // Precision-varying
+      it("9.994 < 9.999 at 2dp is false: both round to 9.99", () => {
+        expect(lessThan(9.994, 9.999)).toEqual(false);
+      });
+      it("9.994 < 9.999 at 3dp is true", () => {
+        expect(lessThan(9.994, 9.999, 3)).toEqual(true);
+      });
     });
 
     describe("#lessThanOrEqual", () => {
@@ -1616,6 +1734,25 @@ describe("#money", () => {
       });
       it("0.12345679 <= 0.12345678 is false (8 decimals)", () => {
         expect(lessThanOrEqual(0.12345679, 0.12345678, 8)).toEqual(false);
+      });
+
+      // README examples — realistic prices
+      it("14.99 <= 19.99 is true", () => {
+        expect(lessThanOrEqual(14.99, 19.99)).toEqual(true);
+      });
+      it("19.99 <= 19.99 is true", () => {
+        expect(lessThanOrEqual(19.99, 19.99)).toEqual(true);
+      });
+      it("24.99 <= 19.99 is false", () => {
+        expect(lessThanOrEqual(24.99, 19.99)).toEqual(false);
+      });
+
+      // Precision-varying
+      it("9.999 <= 9.994 at 2dp is true: both round to 9.99 → equal", () => {
+        expect(lessThanOrEqual(9.999, 9.994)).toEqual(true);
+      });
+      it("9.999 <= 9.994 at 3dp is false: 9.999 > 9.994", () => {
+        expect(lessThanOrEqual(9.999, 9.994, 3)).toEqual(false);
       });
     });
 
@@ -1698,7 +1835,13 @@ describe("#money", () => {
     });
 
     describe("#convert", () => {
-      const rates = { USD: 1, EUR: 0.92, GBP: 0.79, JPY: 149.5, BTC: 0.0000125 };
+      const rates = {
+        USD: 1,
+        EUR: 0.92,
+        GBP: 0.79,
+        JPY: 149.5,
+        BTC: 0.0000125,
+      };
 
       // Basic conversions
       it("100 USD → EUR = 92", () => {

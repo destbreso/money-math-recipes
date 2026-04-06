@@ -362,10 +362,10 @@ Precision determines what counts as equal. Both sides are rounded **before** com
 
 ```js
 // Default precision: 2 decimals
-compare(9.994, 9.999)        //  0  (both round to 9.99 → equal)
+compare(9.994, 9.999)        //  0  (both ceiling to 10.00 → equal)
 compare(9.994, 9.999, 3)     // -1  (9.994 < 9.999 at 3 dp)
 
-compare(14.9949, 14.9951)    //  0  (both round to 14.99 at 2 dp)
+compare(14.9949, 14.9951)    //  0  (both ceiling to 15.00 at 2dp)
 compare(14.9949, 14.9951, 4) // -1  (14.9949 < 14.9951 at 4 dp)
 ```
 
@@ -462,13 +462,13 @@ Returns `true` if two amounts are equal after rounding.
 
 ```js
 equal(19.99, 19.99)      // true
-equal(49.994, 49.99)     // true   (49.994 rounds to 49.99)
+equal(49.981, 49.99)     // true   (49.981 ceilings to 49.99)
 equal(19.99, 20.00)      // false
 
 // Precision changes the boundary
-equal(49.994, 49.999)    // true   (both → 49.99 at 2 dp)
-equal(49.994, 49.999, 3) // false  (49.994 ≠ 49.999 at 3 dp)
-equal(9.9949, 9.9951)    // true   (both → 9.99 at 2 dp)
+equal(49.994, 49.999)    // true   (both ceiling to 50.00 at 2dp)
+equal(49.994, 49.999, 3) // false  (49.994 ≠ 49.999 at 3dp)
+equal(9.9949, 9.9951)    // true   (both ceiling to 10.00 at 2dp)
 ```
 
 #### `greaterThan(lh, rh, decimals?)`
@@ -489,6 +489,10 @@ greaterThan(9.999, 9.994, 3)   // true   (9.999 > 9.994 at 3 dp)
 greaterThanOrEqual(24.99, 19.99)  // true
 greaterThanOrEqual(19.99, 19.99)  // true
 greaterThanOrEqual(14.99, 19.99)  // false
+
+// Precision changes the result
+greaterThanOrEqual(9.994, 9.999)     // true   (both round to 9.99 at 2dp → equal)
+greaterThanOrEqual(9.994, 9.999, 3)  // false  (9.994 < 9.999 at 3dp)
 ```
 
 #### `lessThan(lh, rh, decimals?)`
@@ -509,6 +513,10 @@ lessThan(9.994, 9.999, 3)   // true   (9.994 < 9.999 at 3 dp)
 lessThanOrEqual(14.99, 19.99)  // true
 lessThanOrEqual(19.99, 19.99)  // true
 lessThanOrEqual(24.99, 19.99)  // false
+
+// Precision changes the result
+lessThanOrEqual(9.999, 9.994)     // true   (both round to 9.99 at 2dp → equal)
+lessThanOrEqual(9.999, 9.994, 3)  // false  (9.999 > 9.994 at 3dp)
 ```
 
 ### Formatting & Conversion
