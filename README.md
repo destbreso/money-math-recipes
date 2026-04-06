@@ -88,20 +88,20 @@ import { sum, value, percent, addPercent, deductPercent, split } from 'abakojs';
 ```
 
 ```js
-value(10.2506)           // 10.26
-sum(19.99, 4.99, 0.50)   // 25.48
-percent(200, 8.5)        // 17
-addPercent(100, 21)      // 121  (add 21% VAT)
-deductPercent(100, 10)   // 90   (10% discount)
-split(100, 3)            // [33.34, 33.33, 33.33]  ← exact, no cent lost
+value(10.2506)             // 10.26
+sum(19.99, 4.99, 0.50)     // 25.48
+percent(249.90, 8.5)       // 21.24
+addPercent(89.99, 21)      // 108.89  (add 21% VAT)
+deductPercent(149.99, 15)  // 127.49  (15% discount)
+split(49.99, 3)            // [16.67, 16.66, 16.66]  ← exact, no cent lost
 ```
 
 **Strings work everywhere** — numbers, strings, and mixed inputs are all accepted:
 
 ```js
-sum('19.99', 4.99, '0.50')   // 25.48
-add('0.1', '0.2')            // 0.3
-multiply('19.99', 3)         // 59.97
+sum('19.99', 4.99, '0.50')   // 25.48  (mixed)
+add('0.1', '0.2')            // 0.3    (all strings, precision guaranteed)
+multiply('49.99', '1.21')    // 60.49  (all strings)
 ```
 
 **Cents workflow** — convert to/from integer cents for storage or legacy APIs:
@@ -130,8 +130,8 @@ const items = [
 const subtotal    = sum(items.map(i => multiply(i.price, i.qty)));
 // 44.44  (= 39.98 + 4.99 + 1.47) — no rounding drift
 
-const afterCoupon = deductPercent(subtotal, 10);  // 40
-const total       = addPercent(afterCoupon, 21);  // 48.4  (21% VAT)
+const afterCoupon = deductPercent(subtotal, 5);   // 42.22  (5% coupon)
+const total       = addPercent(afterCoupon, 21);  // 51.09  (21% VAT)
 ```
 
 ### Invoice with fees
@@ -139,15 +139,15 @@ const total       = addPercent(afterCoupon, 21);  // 48.4  (21% VAT)
 ```js
 import { addFees, addMaxFee, deductFees } from 'abakojs';
 
-// Platform fee: 2% + $0.30 flat (Stripe-style)
-addFees(100, 2, 0.30)       // 102.30
+// Platform fee: 2.9% + $0.30 flat (Stripe-style)
+addFees(49.99, 2.9, 0.30)       // 51.74
 
-// Charge whichever is higher: 3% or $5 minimum
-addMaxFee(100, 3, 5)        // 105   (5 wins over 3)
-addMaxFee(500, 3, 5)        // 515   (15 wins over 5)
+// Charge whichever is higher: 2.5% or $4.99 minimum
+addMaxFee(149.99, 2.5, 4.99)    // 154.98  ($4.99 wins over 3.75)
+addMaxFee(299.99, 2.5, 4.99)    // 307.49  (7.50 wins over $4.99)
 
-// Coupon: 15% off + $2 flat discount
-deductFees(80, 15, 2)       // 66
+// Coupon: 12% off + $2.50 flat discount
+deductFees(89.99, 12, 2.50)     // 76.69
 ```
 
 ### Split a bill without losing cents
@@ -155,9 +155,9 @@ deductFees(80, 15, 2)       // 66
 ```js
 import { split } from 'abakojs';
 
-split(100, 3)                     // [33.34, 33.33, 33.33]
-split(100, [50, 30, 20])          // [50, 30, 20]
-split(0.01, [50, 30, 20])         // [0.01, 0, 0]  ← remainder goes to first
+split(49.99, 3)               // [16.67, 16.66, 16.66]
+split(74.97, [50, 30, 20])    // [37.49, 22.49, 14.99]
+split(0.07, [50, 30, 20])     // [0.04, 0.02, 0.01]  ← remainder to first
 ```
 
 ### Currency formatting
@@ -206,13 +206,13 @@ isPositive(0.00000001, 8)                      // true  (1 satoshi > 0)
 ```js
 import { compare, equal, greaterThan, min, max } from 'abakojs';
 
-compare(1.99, 2.00)        // -1
-equal(0.1 + 0.2, 0.3)     // true  (safe after rounding)
-greaterThan(10, 9.99)      // true
+compare(19.99, 24.99)       // -1
+equal(0.1 + 0.2, 0.3)      // true  (safe after rounding)
+greaterThan(24.99, 19.99)   // true
 
-const prices = [14.99, 9.50, 22.00, 4.75];
-min(...prices)             // 4.75
-max(...prices)             // 22
+const prices = [14.99, 9.50, 22.95, 4.75];
+min(...prices)              // 4.75
+max(...prices)              // 22.95
 ```
 
 ---
@@ -264,10 +264,9 @@ cents2Amount(-25)    // throws ArgumentError: cents must be positive integer
 Applies an exchange rate to an amount.
 
 ```js
-fx(100, 1.55235)          // 155.24
-fx(100, 0.01)             // 1
-fx(100, 0.0000155235)     // 0.01
-fx(100, 0.0000155235, 4)  // 0.0016
+fx(49.99, 1.0847)            // 54.22  (USD → CAD)
+fx('99.95', 0.9201)          // 91.96  (string input, USD → EUR)
+fx(0.001, 65432.10, 2)       // 65.43  (mBTC → USD)
 ```
 
 ### Arithmetic
@@ -292,10 +291,8 @@ sum([0.001, 0.002, 0.003], { decimals: 8 })    // 0.006
 Adds two amounts.
 
 ```js
-add(0.1, 0.2)   // 0.3
-add(9.99, 0.01) // 10
-
-// Crypto (8 decimals)
+add(0.1, 0.2)              // 0.3
+add('19.99', '4.99')       // 24.98  (all strings)
 add(0.12345678, 0.00000001, 8)  // 0.12345679
 ```
 
@@ -316,8 +313,8 @@ subtract(0.12345679, 0.00000001, 8)  // 0.12345678
 Multiplies an amount by a factor.
 
 ```js
-multiply(165, 1.40) // 231
-multiply(100, 0.5)  // 50
+multiply(49.99, 1.21)      // 60.49  (apply 21% markup)
+multiply('19.99', '3')     // 59.97  (all strings)
 ```
 
 #### `divide(amount, divisor, decimals?)`
@@ -325,9 +322,9 @@ multiply(100, 0.5)  // 50
 Divides an amount. Throws `ArgumentError` on division by zero.
 
 ```js
-divide(123.45, 2)  // 61.73
-divide(10, 3)      // 3.34
-divide(10, 0)      // throws ArgumentError: cant divide by zero
+divide(123.45, 2)   // 61.73
+divide(74.97, 3)    // 24.99
+divide(49.99, 0)    // throws ArgumentError: cant divide by zero
 ```
 
 #### `percent(amount, p, decimals?)`
@@ -335,9 +332,9 @@ divide(10, 0)      // throws ArgumentError: cant divide by zero
 Computes `p`% of `amount`.
 
 ```js
-percent(100, 10)     // 10
-percent(524.25, 8.75) // 45.88
-percent(99.99, 50)   // 50
+percent(249.90, 8.5)    // 21.24  (VAT portion)
+percent(524.25, 8.75)   // 45.88
+percent('89.99', 12.5)  // 11.25  (string input)
 
 // Crypto (8 decimals)
 percent(0.12345678, 10, 8)  // 0.01234568
@@ -350,11 +347,11 @@ percent(0.12345678, 10, 8)  // 0.01234568
 Compares two monetary amounts after rounding. Returns `-1`, `0`, or `1`. Returns `NaN` if either operand is invalid.
 
 ```js
-compare(1, 2)      // -1
-compare(2, 1)      // 1
-compare(1, 1)      // 0
-compare(0.1, 0.10) // 0
-compare(NaN, 1)    // NaN
+compare(19.99, 24.99)    // -1
+compare(24.99, 19.99)    // 1
+compare(9.99, 9.990)     // 0
+compare('0.10', 0.1)     // 0   (string input)
+compare(NaN, 1.99)       // NaN
 
 // Crypto (8 decimals)
 compare(0.12345678, 0.12345679, 8)  // -1
@@ -370,9 +367,9 @@ compare(0.12345678, 0.12345678, 8)  // 0
 Returns `true` if the value is a valid numeric monetary amount.
 
 ```js
-isValid(1)         // true
+isValid(19.99)     // true
 isValid('10.5')    // true
-isValid(0)         // true
+isValid(0.01)      // true
 isValid(NaN)       // false
 isValid(null)      // false
 isValid([])        // false
@@ -393,9 +390,9 @@ isZero(0, 8)          // true
 #### `isPositive(amount, decimals?)`
 
 ```js
-isPositive(1)   // true
-isPositive(0)   // false
-isPositive(-1)  // false
+isPositive(0.01)    // true
+isPositive(0)       // false
+isPositive(-0.01)   // false
 
 // Crypto (8 decimals)
 isPositive(0.00000001, 8)  // true
@@ -404,9 +401,9 @@ isPositive(0.00000001, 8)  // true
 #### `isNegative(amount, decimals?)`
 
 ```js
-isNegative(-1)  // true
-isNegative(0)   // false
-isNegative(1)   // false
+isNegative(-0.01)   // true
+isNegative(0)       // false
+isNegative(0.01)    // false
 
 // Crypto (8 decimals)
 isNegative(-0.00000001, 8)  // true
@@ -427,9 +424,9 @@ abs('-3.14') // 3.14
 Returns the smallest value from the given amounts.
 
 ```js
-min(3, 1, 2)         // 1
-min([10.5, 3.2, 7])  // 3.2
-min(-1, -5, 0)       // -5
+min(14.99, 9.50, 22.95)           // 9.50
+min([14.99, 9.50, 22.95])         // 9.50
+min(-0.99, -5.49, 0.01)           // -5.49
 
 // Crypto (8 decimals)
 min(0.12345678, 0.12345679, { decimals: 8 })  // 0.12345678
@@ -440,9 +437,9 @@ min(0.12345678, 0.12345679, { decimals: 8 })  // 0.12345678
 Returns the largest value from the given amounts.
 
 ```js
-max(3, 1, 2)         // 3
-max([10.5, 3.2, 7])  // 10.5
-max(-1, -5, 0)       // 0
+max(14.99, 9.50, 22.95)           // 22.95
+max([14.99, 9.50, 22.95])         // 22.95
+max(-0.99, -5.49, 0.01)           // 0.01
 
 // Crypto (8 decimals)
 max(0.12345678, 0.12345679, { decimals: 8 })  // 0.12345679
@@ -453,41 +450,41 @@ max(0.12345678, 0.12345679, { decimals: 8 })  // 0.12345679
 Returns `true` if two amounts are equal after rounding.
 
 ```js
-equal(1, 1)       // true
-equal(1, 1.004)   // true  (both round to 1.00)
-equal(1, 2)       // false
+equal(19.99, 19.99)    // true
+equal(49.994, 49.99)   // true  (49.994 rounds to 49.99)
+equal(19.99, 20.00)    // false
 ```
 
 #### `greaterThan(lh, rh, decimals?)`
 
 ```js
-greaterThan(2, 1)    // true
-greaterThan(1, 2)    // false
-greaterThan(1, 1)    // false
+greaterThan(24.99, 19.99)   // true
+greaterThan(19.99, 24.99)   // false
+greaterThan(19.99, 19.99)   // false
 ```
 
 #### `greaterThanOrEqual(lh, rh, decimals?)`
 
 ```js
-greaterThanOrEqual(2, 1)  // true
-greaterThanOrEqual(1, 1)  // true
-greaterThanOrEqual(1, 2)  // false
+greaterThanOrEqual(24.99, 19.99)  // true
+greaterThanOrEqual(19.99, 19.99)  // true
+greaterThanOrEqual(14.99, 19.99)  // false
 ```
 
 #### `lessThan(lh, rh, decimals?)`
 
 ```js
-lessThan(1, 2)    // true
-lessThan(2, 1)    // false
-lessThan(1, 1)    // false
+lessThan(14.99, 19.99)   // true
+lessThan(19.99, 14.99)   // false
+lessThan(19.99, 19.99)   // false
 ```
 
 #### `lessThanOrEqual(lh, rh, decimals?)`
 
 ```js
-lessThanOrEqual(1, 2)  // true
-lessThanOrEqual(1, 1)  // true
-lessThanOrEqual(2, 1)  // false
+lessThanOrEqual(14.99, 19.99)  // true
+lessThanOrEqual(19.99, 19.99)  // true
+lessThanOrEqual(24.99, 19.99)  // false
 ```
 
 ### Formatting & Conversion
@@ -576,8 +573,8 @@ Throws `ArgumentError` if parts don't sum to 100 or argument is invalid.
 Adds a percentage surcharge to an amount.
 
 ```js
-addPercent(100, 10)  // 110
-addPercent(200, 21)  // 242
+addPercent(89.99, 21)    // 108.89  (add 21% VAT)
+addPercent(149.99, 10)   // 164.99  (add 10% platform fee)
 ```
 
 > **Deprecated alias:** `applyTax()`
@@ -587,8 +584,8 @@ addPercent(200, 21)  // 242
 Deducts a percentage from an amount.
 
 ```js
-deductPercent(100, 10) // 90
-deductPercent(11, 8.2) // 10.10
+deductPercent(89.99, 15)    // 76.49  (15% discount)
+deductPercent(49.99, 8.5)   // 45.74  (8.5% loyalty discount)
 ```
 
 > **Deprecated alias:** `applyDiscount()`
@@ -598,8 +595,8 @@ deductPercent(11, 8.2) // 10.10
 Returns the larger of: p% of amount, or a fixed fee. Useful when a minimum charge applies.
 
 ```js
-maxFee(100, 10, 20) // 20  (10% = 10, fee = 20 → max is 20)
-maxFee(100, 21, 20) // 21  (21% = 21, fee = 20 → max is 21)
+maxFee(29.99, 10, 4.99)   //  4.99  (10% = 3.00, fixed fee wins)
+maxFee(99.99, 10, 4.99)   // 10.00  (10% = 10.00, pct wins)
 ```
 
 > **Deprecated alias:** `maxTax()`
@@ -609,8 +606,8 @@ maxFee(100, 21, 20) // 21  (21% = 21, fee = 20 → max is 21)
 Adds the larger of: percentage or fixed fee, to the amount.
 
 ```js
-addMaxFee(100, 10, 20) // 120  (fee 20 wins over 10%)
-addMaxFee(100, 21, 20) // 121  (21% wins over fee 20)
+addMaxFee(29.99, 10, 4.99)   // 34.98  ($4.99 wins over 3.00)
+addMaxFee(99.99, 10, 4.99)   // 109.99  (10% = 10.00 wins over $4.99)
 ```
 
 > **Deprecated alias:** `applyMaxTax()`
@@ -620,7 +617,7 @@ addMaxFee(100, 21, 20) // 121  (21% wins over fee 20)
 Adds both a percentage and a fixed fee to the amount.
 
 ```js
-addFees(100, 10, 20) // 130  (100 + 10% + 20)
+addFees(49.99, 2.9, 0.30)   // 51.74  (2.9% + $0.30 flat, Stripe-style)
 ```
 
 > **Deprecated alias:** `applySumTax()`
@@ -630,8 +627,8 @@ addFees(100, 10, 20) // 130  (100 + 10% + 20)
 Deducts the **larger** of a percentage or a fixed fee from the amount.
 
 ```js
-deductMaxFee(100, 10, 20) // 80  (fee 20 wins over 10% = 10)
-deductMaxFee(100, 25, 20) // 75  (25% = 25 wins over fee 20)
+deductMaxFee(149.99, 5, 12.00)   // 137.99  ($12 wins over 7.50)
+deductMaxFee(299.99, 5, 12.00)   // 284.99  (5% = 15.00 wins over $12)
 ```
 
 > **Deprecated alias:** `applyMaxDiscount()`
@@ -641,8 +638,8 @@ deductMaxFee(100, 25, 20) // 75  (25% = 25 wins over fee 20)
 Deducts both a percentage and a fixed fee from the amount.
 
 ```js
-deductFees(100, 10, 20) // 70  (100 - 10% - 20)
-deductFees(200, 50, 30) // 70  (200 - 50% - 30)
+deductFees(89.99, 12, 2.50)    // 76.69  (12% off + $2.50 flat)
+deductFees(149.99, 5, 3.99)    // 138.50  (5% off + $3.99 flat)
 ```
 
 > **Deprecated alias:** `applySumDiscount()`
